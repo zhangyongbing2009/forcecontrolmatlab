@@ -7,7 +7,7 @@ clear all; close all; clc;
 
 % forcing function
 Time = 0.01:0.01:10;
-V = 5*sin(Time);
+V = 1*sin(Time);
 %V = [0.01:0.01:2,2.1,2.1, 1.5:0.01:2.2];
 
 % material property
@@ -20,7 +20,7 @@ MatData(1).E      = 2.8;
 MatData(1).Fy     = 1.5;    % yield stress
 MatData(1).b      = 0.5;    % hardening ratio
 MatData(1).Hkin   = 0.1;
-MatData(1).amp    = 1;
+MatData(1).amp    = 5;
 
 % initialize the material
 feval(Element{1},'initialize',MatData(1));

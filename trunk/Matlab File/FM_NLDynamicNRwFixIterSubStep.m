@@ -3,10 +3,10 @@
 % Written by T.Y. Yang and Andreas Schellenberg 09/08/2009
 
 % clean start
-clear all; %close all; clc;
+clear all; close all; clc;
 
 % add the subroutine path to the folder
-addpath([pwd '/Material models']);
+addpath([pwd '\Material models']);
 
 % constants for the three span truss problem
 %M = [0.005 0; 0 0.01];
@@ -88,9 +88,9 @@ C = a_o*M + a_1*K;
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
+GMDir = 'D:\Force Control\Ground motions\';
 dt = 0.02;
-SF = 1.0;
+SF = 1.25;
 g = 386.1;
 ag0 = load([GMDir 'elcentro.txt']);
 t0 = 0:length(ag0)-1;
@@ -128,8 +128,10 @@ Tol = 1e-3;
 % initialize global response variables
 Q = zeros(numElem,npts);
 Qm = zeros(1,npts);
+Qall = zeros(numElem,npts*maxIter);
 errorNorms = zeros(1,npts);
 V = zeros(numElem,npts);
+Vall = zeros(numElem,npts*maxIter);
 U = zeros(ndf,npts);
 Udot = zeros(ndf,npts);
 Udotdot = zeros(ndf,npts);
@@ -163,6 +165,10 @@ for nn = 2:npts
          Ft(j,j) = feval(Element{j},'getTangent',MatData(j));
       end
       
+      % record the intermediate data
+      Qall(:,(nn-1)*maxIter + iter) = Q(:,nn);
+      Vall(:,(nn-1)*maxIter + iter) = V(:,nn);
+      
       U(:,nn) = Bi'*V(:,nn);
       Udot(:,nn) = c2*(U(:,nn)-U(:,nn-1)) + a1*Udot(:,nn-1) + a2*Udotdot(:,nn-1);
       Udotdot(:,nn) = c3*(U(:,nn)-U(:,nn-1)) + a3*Udot(:,nn-1) + a4*Udotdot(:,nn-1);
@@ -184,6 +190,8 @@ for nn = 2:npts
       
       % update variables
       Q(:,nn) = Q(:,nn) + scaleddQ;     
+      
+      
    end
    
    % set trial forces in elements
@@ -233,6 +241,15 @@ for j=1:numElem
     plot(V(j,:),Q(j,:));
     xlabel(['V' num2str(j)]);
     ylabel(['Q' num2str(j)]);
+    grid
+end
+
+figure;
+for j=1:numElem
+    subplot(numElem,1,j);
+    plot(Vall(j,:),Qall(j,:));
+    xlabel(['Vall' num2str(j)]);
+    ylabel(['Qall' num2str(j)]);
     grid
 end
 
@@ -291,4 +308,4 @@ xlabel('Time [sec]')
 grid
 
 % remove the subroutine path to the folder
-rmpath([pwd '/Material models']);
+rmpath([pwd '\Material models']);

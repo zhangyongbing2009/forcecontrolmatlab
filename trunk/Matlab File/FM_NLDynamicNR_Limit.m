@@ -1,16 +1,18 @@
-% Nonlinear dynamic analysis using force method with fix number of iterations
+% Nonlinear dynamic analysis using force method
 %
 % Written by T.Y. Yang and Andreas Schellenberg 09/08/2009
 
 % clean start
-clear all; %close all; clc;
+clear all; close all; clc;
 
 % add the subroutine path to the folder
-addpath([pwd '/Material models']);
+% addpath([pwd '/Material models']);
+addpath([pwd '\Material models']);
 
 % constants for the three span truss problem
-%M = [0.005 0; 0 0.01];
+%M = [0.04 0; 0 0.02];
 M = [0.01 0; 0 0.01];
+%C = 1.01*M;
 B = [1 -1 0; 0 1 -1];
 Bi = [1 1; 0 1; 0 0];
 Bx = [1; 1; 1];
@@ -32,9 +34,10 @@ nos = size(Bx,2);
 % element 1 properties - left column
 %Element{1} = 'ElasticForce';
 %Element{1} = 'BiLinearElasticForce';
-Element{1} = 'BiLinearHystericForce';
+ %Element{1} = 'BiLinearHystericForce';
 %Element{1} = 'HardeningForce';
-%Element{1} = 'ExperimentalForce';
+%Element{1} = 'NLElasticForce';
+Element{1} = 'ExperimentalForce';
 MatData(1).tag    = 1;
 MatData(1).E      = 2.65;
 MatData(1).Fy     = 1.5;    % yield stress
@@ -44,25 +47,25 @@ MatData(1).ipPort = 8090;
 MatData(1).Hkin   = 0.01;
 
 
-% element 2 properties - right column
+% element 2 properties
 Element{2} = 'ElasticForce';
 MatData(2).tag = 2;
-MatData(2).E   = 5; %0.5;
+% MatData(2).E   = 2;
+MatData(2).E   = 5;
 
-% element 3 properties - spring
+% element 3 properties
 Element{3} = 'ElasticForce';
 MatData(3).tag = 3;
-MatData(3).E   = 20; %; 1;
+% MatData(3).E   = 5.6;
+MatData(3).E   = 20;
 
 % element 4 properties - spring
 Element{4} = 'ElasticForce';
 MatData(4).tag = 4;
 MatData(4).E   = 10;
 
-% number of element 
-numElem = size(B,2);
-
 % initial flexibility matrix
+numElem = size(B,2);
 Ft = zeros(numElem);
 for j=1:numElem
    feval(Element{j},'initialize',MatData(j));
@@ -88,9 +91,10 @@ C = a_o*M + a_1*K;
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
+GMDir = 'D:\Force Control\Ground motions\';
+% GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
-SF = 1.0;
+SF = 1.25;
 g = 386.1;
 ag0 = load([GMDir 'elcentro.txt']);
 t0 = 0:length(ag0)-1;
@@ -111,8 +115,6 @@ npts = 303; %length(ag);
 % analysis parameters
 beta  = 1/4;
 gamma = 1/2;
-
-% set the constants
 c1 = 1.0;
 c2 = gamma/(beta*deltaT);
 c3 = 1.0/(beta*deltaT*deltaT);
@@ -122,8 +124,10 @@ a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
 % max iterations and Tol
-maxIter = 20;
-Tol = 1e-3;
+maxIter = 200;
+Tol = 1e-2;
+incrLimit = 0.025;
+counter = 1;
 
 % initialize global response variables
 Q = zeros(numElem,npts);
@@ -133,6 +137,7 @@ V = zeros(numElem,npts);
 U = zeros(ndf,npts);
 Udot = zeros(ndf,npts);
 Udotdot = zeros(ndf,npts);
+numIter = zeros(1,npts);
 
 % assemble the augmented matrices
 Sb = [B; Bx'*Ft];
@@ -141,6 +146,8 @@ Cb = [C; zeros(nos,ndf)];
 
 % calculations for each time step, nn
 for nn = 2:npts
+   iter = 1;
+   errorNorm = 1;
    Pr = B*Q(:,nn);
    Prb = [Pr; zeros(nos,1)];
    Pb = -Mb*b*ag(nn);
@@ -151,7 +158,7 @@ for nn = 2:npts
    Udot(:,nn) = a1*Udot(:,nn-1) + a2*Udotdot(:,nn-1);
    Udotdot(:,nn) = a3*Udot(:,nn-1) + a4*Udotdot(:,nn-1);
    
-   for iter = 1:maxIter
+   while (errorNorm >= Tol && iter <= maxIter)
       % set trial forces in elements
       for j=1:numElem
          feval(Element{j},'setTrialStress',MatData(j),Q(j,nn));
@@ -163,12 +170,15 @@ for nn = 2:npts
          Ft(j,j) = feval(Element{j},'getTangent',MatData(j));
       end
       
+      Qall(:,counter) = Q(:,nn);
+      Vall(:,counter) = V(:,nn);
+      
       U(:,nn) = Bi'*V(:,nn);
       Udot(:,nn) = c2*(U(:,nn)-U(:,nn-1)) + a1*Udot(:,nn-1) + a2*Udotdot(:,nn-1);
       Udotdot(:,nn) = c3*(U(:,nn)-U(:,nn-1)) + a3*Udot(:,nn-1) + a4*Udotdot(:,nn-1);
       
       Pr = B*Q(:,nn);
-      %Prb = [Pr; zeros(nos,1)];
+%       Prb = [Pr; zeros(nos,1)];
       Prb = [Pr; Bx'*V(:,nn)];
       Sb = [B; Bx'*Ft];
       
@@ -177,13 +187,38 @@ for nn = 2:npts
       dRdQ = c3*Mb*Bi'*Ft + c2*Cb*Bi'*Ft + Sb;
       dQ = -dRdQ\R;
       
-      % substeps
-      %x = iter/maxIter;
-      %scaleddQ = x*(Q(:,nn) + dQ) - (x-1)*Q(:,nn-1) - Q(:,nn);
-      scaleddQ = dQ/(maxIter-iter+1);
+      if max(abs(dQ)) > incrLimit
+         scale = incrLimit/max(abs(dQ));
+         dQ = scale*dQ;
+      end
+      
       
       % update variables
-      Q(:,nn) = Q(:,nn) + scaleddQ;     
+      Q(:,nn) = Q(:,nn) + dQ;
+      
+      % update the tolerance and iteration number
+      % get energy increment
+      %errorNorm = norm(dQ);
+      errorNorm = norm(R);
+      iter = iter+1;
+      counter = counter+1;
+      
+      clc
+      nn
+      iter
+   end
+   
+   numIter(nn) = iter;
+   errorNorms(nn) = errorNorm;
+   
+   if (iter < maxIter)
+      % commit the elements
+      for j=1:numElem
+         feval(Element{j},'commitState',MatData(j));
+      end
+   else
+      error(['failed to converge in Newton-Raphson algorithm: Step = ',num2str(nn),...
+         ', errorNorm = ',num2str(errorNorm)]);
    end
    
    % set trial forces in elements
@@ -210,8 +245,6 @@ for nn = 2:npts
        feval(Element{j},'commitState',MatData(j));
    end
    
-   % update the tolerance and iteration number
-   errorNorms(nn) = norm(R);
 end
 
 % disconnect from experimental sites
@@ -233,6 +266,15 @@ for j=1:numElem
     plot(V(j,:),Q(j,:));
     xlabel(['V' num2str(j)]);
     ylabel(['Q' num2str(j)]);
+    grid
+end
+
+figure;
+for j=1:numElem
+    subplot(numElem,1,j);
+    plot(Vall(j,:),Qall(j,:));
+    xlabel(['Vall' num2str(j)]);
+    ylabel(['Qall' num2str(j)]);
     grid
 end
 
@@ -283,6 +325,12 @@ ylabel('Error')
 xlabel('Time [sec]')
 grid
 
+figure;
+plot(t,numIter)
+ylabel('# of Iter/dt')
+xlabel('Time [sec]')
+grid
+
 % ground motion
 figure;
 plot(t,ag0(1:length(t)))
@@ -291,4 +339,5 @@ xlabel('Time [sec]')
 grid
 
 % remove the subroutine path to the folder
-rmpath([pwd '/Material models']);
+% rmpath([pwd '/Material models']);
+rmpath([pwd '\Material models']);

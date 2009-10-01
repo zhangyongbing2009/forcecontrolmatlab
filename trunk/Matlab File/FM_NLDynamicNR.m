@@ -6,7 +6,8 @@
 clear all; %close all; clc;
 
 % add the subroutine path to the folder
-addpath([pwd '\Material models']);
+%addpath([pwd '\Material models']);
+addpath([pwd '/Material models']);
 
 % constants for the three span truss problem
 %M = [0.04 0; 0 0.02];
@@ -31,14 +32,14 @@ ndf = size(M,1);
 nos = size(Bx,2);
 
 % element 1 properties - left column
-Element{1} = 'ElasticForce';
+%Element{1} = 'ElasticForce';
 %Element{1} = 'BiLinearElasticForce';
-%Element{1} = 'BiLinearHystericForce';
+Element{1} = 'BiLinearHystericForce';
 %Element{1} = 'HardeningForce';
 %Element{1} = 'ExperimentalForce';
 MatData(1).tag    = 1;
-MatData(1).E      = 3.25;%2.8*3;
-MatData(1).Fy     = 1.5*3;    % yield stress
+MatData(1).E      = 2.65;
+MatData(1).Fy     = 1.5;    % yield stress
 MatData(1).b      = 0.02;    % hardening ratio
 MatData(1).ipAddr = '127.0.0.1';
 MatData(1).ipPort = 8090;
@@ -87,7 +88,8 @@ C = a_o*M + a_1*K;
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = 'D:\Force Control\Ground motions\';
+% GMDir = 'D:\Force Control\Ground motions\';
+GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
 SF = 2;
 g = 386.1;
@@ -275,4 +277,5 @@ xlabel('Time [sec]')
 grid
 
 % remove the subroutine path to the folder
-rmpath([pwd '\Material models']);
+% rmpath([pwd '\Material models']);
+rmpath([pwd '/Material models']);

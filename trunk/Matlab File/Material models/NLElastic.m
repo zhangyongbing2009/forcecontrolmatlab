@@ -46,21 +46,19 @@ switch action
       varargout = {strainT(:,tag)};
    % ======================================================================
    case 'getStress'
-      stressT = amp*sign(strainT(:,tag))*sqrt(abs(strainT(:,tag)));
-       
+      stressT = amp*sign(strainT(:,tag))*(1-exp(-sign(strainT(:,tag))*strainT(:,tag)));
+ 
       varargout = {stressT};
    % ======================================================================
    case 'getTangent'
-      if abs(strainT(:,tag)) > Fy/E
-         tangentT = b*E;
-      else
-         tangentT = E;
-      end
-      
+      tangentT = amp*exp(-sign(strainT(:,tag))*strainT(:,tag));
+ 
       varargout = {tangentT};
    % ======================================================================
    case 'getInitialTangent'
-      varargout = {E};
+       E = amp; 
+       
+       varargout = {E};
    % ======================================================================
    case 'commitState'
       varargout = {0};      
