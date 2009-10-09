@@ -7,7 +7,8 @@
 clear all; close all; clc;
 
 % add the subroutine path to the folder
-addpath([pwd '\Material models']);
+%addpath([pwd '\Material models']);
+addpath([pwd '/Material models']);
 
 % constants for the three span truss problem
 M = [0.04 0; 0 0.02];
@@ -68,8 +69,8 @@ T = 2.0*pi./omega;
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-% load the ground motion
-GMDir = 'C:\Documents and Settings\Tony\Desktop\Force control\Example\';
+% GMDir = 'D:\Force Control\Ground motions\';
+GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
 SF = 1;
 g = 386.1;

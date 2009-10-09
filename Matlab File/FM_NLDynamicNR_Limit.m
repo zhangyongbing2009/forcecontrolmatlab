@@ -6,8 +6,8 @@
 clear all; close all; clc;
 
 % add the subroutine path to the folder
-% addpath([pwd '/Material models']);
-addpath([pwd '\Material models']);
+addpath([pwd '/Material models']);
+% addpath([pwd '\Material models']);
 
 % constants for the three span truss problem
 %M = [0.04 0; 0 0.02];
@@ -91,8 +91,8 @@ C = a_o*M + a_1*K;
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = 'D:\Force Control\Ground motions\';
-% GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
+% GMDir = 'D:\Force Control\Ground motions\';
+GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
 SF = 1.25;
 g = 386.1;
@@ -272,7 +272,7 @@ end
 figure;
 for j=1:numElem
     subplot(numElem,1,j);
-    plot(Vall(j,:),Qall(j,:));
+    plot(Vall(j,:),Qall(j,:),'-r');
     xlabel(['Vall' num2str(j)]);
     ylabel(['Qall' num2str(j)]);
     grid
@@ -339,5 +339,5 @@ xlabel('Time [sec]')
 grid
 
 % remove the subroutine path to the folder
-% rmpath([pwd '/Material models']);
-rmpath([pwd '\Material models']);
+rmpath([pwd '/Material models']);
+% rmpath([pwd '\Material models']);
