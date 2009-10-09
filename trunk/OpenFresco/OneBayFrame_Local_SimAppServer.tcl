@@ -24,15 +24,17 @@ model BasicBuilder -ndm 2 -ndf 2
 # Define materials
 # ----------------
 # uniaxialMaterial ElasticForce $matTag $E
-uniaxialMaterial ElasticForce 1 2.8
+#uniaxialMaterial ElasticForce 1 2.8
+uniaxialMaterial Elastic 1 2.8
 
 # Define experimental control
 # ---------------------------
 # expControl SimUniaxialMaterialsForce $tag $matTags
+expControl SimUniaxialMaterials 1 1
 #expControl SimUniaxialMaterialsForce 1 1
 # expControl xPCtargetForce $tag ipAddr $ipPort 
 #expControl xPCtargetForce 1 "192.168.2.20" 22222 HybridControllerF1F1_Filter_1Act "D:/PredictorCorrector/RTActualTestModels/cmAPI-xPCTarget-STS"
-expControl xPCtarget 1 1 "192.168.2.20" 22222 HybridControllerD1D1_Filter_1Act "D:/PredictorCorrector/RTActualTestModels/cmAPI-xPCTarget-STS"
+#expControl xPCtarget 1 1 "192.168.2.20" 22222 HybridControllerD1D1_Filter_1Act "D:/PredictorCorrector/RTActualTestModels/cmAPI-xPCTarget-STS"
 
 # Define experimental setup
 # -------------------------
