@@ -3,16 +3,22 @@
 % Written by T.Y. Yang and Andreas Schellenberg 09/08/2009
 
 % clean start
-clear all; %close all; clc;
+clear all;
+close all;
+clc;
 
 % add the subroutine path to the folder
 %addpath([pwd '\Material models']);
 addpath([pwd '/Material models']);
 
-% constants for the three span truss problem
-%M = [0.04 0; 0 0.02];
-M = [0.01 0; 0 0.01];
-%C = 1.01*M;
+
+%%%%%%%%%%%%%%%%%%%%
+% Model Generation
+%%%%%%%%%%%%%%%%%%%%
+% global mass matrix
+M = [0.04 0; 0 0.02];
+
+% equilibrium matrices
 B = [1 -1 0; 0 1 -1];
 Bi = [1 1; 0 1; 0 0];
 Bx = [1; 1; 1];
@@ -25,75 +31,80 @@ Bx = [1; 1; 1];
 % Bi = [1 1; 0 1; 0 0; 0 0];
 % Bx = [1 -1; 1 0; 1 0; 0 1];
 
-
 % number of global DOF in the model
 ndf = size(M,1);
 % degree of static indeterminancy
 nos = size(Bx,2);
 
-% element 1 properties - left column
+% element 1 properties
 %Element{1} = 'ElasticForce';
 %Element{1} = 'BiLinearElasticForce';
-Element{1} = 'BiLinearHystericForce';
+Element{1} = 'BiLinearHystereticForce';
 %Element{1} = 'HardeningForce';
+%Element{1} = 'NLElasticForce';
 %Element{1} = 'ExperimentalForce';
 MatData(1).tag    = 1;
-MatData(1).E      = 2.65;
-MatData(1).Fy     = 1.5;    % yield stress
-MatData(1).b      = 0.02;    % hardening ratio
+MatData(1).E      = 2.8;
+MatData(1).fy     = 1.5;      % yield stress
+MatData(1).b      = 0.5;     % hardening ratio
+MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
+MatData(1).Kiso   = 0.0;
 MatData(1).ipAddr = '127.0.0.1';
 MatData(1).ipPort = 8090;
-MatData(1).Hkin   = 0.01;
 
-
-% element 2 properties - right column
+% element 2 properties
 Element{2} = 'ElasticForce';
 MatData(2).tag = 2;
-MatData(2).E   = 5; %0.5;
+MatData(2).E   = 2.0;
 
-% element 3 properties - spring
+% element 3 properties
 Element{3} = 'ElasticForce';
 MatData(3).tag = 3;
-MatData(3).E   = 20; %; 1;
+MatData(3).E   = 5.6;
 
-% element 4 properties - spring
+% element 4 properties
 Element{4} = 'ElasticForce';
 MatData(4).tag = 4;
 MatData(4).E   = 10;
 
-% initial flexibility matrix
+% number of elements
 numElem = size(B,2);
-Ft = zeros(numElem);
+
+% initial flexibility and global stiffness matrix
+f = zeros(numElem);
 for j=1:numElem
    feval(Element{j},'initialize',MatData(j));
-   Ft(j,j) = feval(Element{j},'getInitialTangent',MatData(j));
+   f(j,j) = feval(Element{j},'getInitialTangent',MatData(j));
 end
-
-K = B*inv(Ft)*B';
+K = B*(f\B');
 
 % calculate natural frequencies and periods
 lambda = eig(K,M);
 omega  = sort(sqrt(lambda));
 T = 2.0*pi./omega;
-%C = 1.01*M;
 
-% Calculate Raleigh Damping
-%zeta = [0.03 0.03];
-zeta = [0.025 0.025];
-a_o = zeta(1) * 2 * omega(1) * omega(2) / (omega(1)+omega(2));
-a_1 = zeta(1) * 2 / (omega(1)+omega(2));
-C = a_o*M + a_1*K;
+% mass-proportional damping matrix
+zeta = 0.05;
+alphaM = 2.0*zeta*omega(1);
+C = alphaM*M;
+
+% Rayleigh damping matrix
+%zeta = [0.05, 0.05];
+%coef = [1/omega(1) omega(1); 1/omega(2) omega(2)]\[zeta(1); zeta(2)]*2;
+%alphaM = coef(1);
+%betaKi = coef(2);
+%C = alphaM*M + betaKi*K;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-% GMDir = 'D:\Force Control\Ground motions\';
-GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
+GMDir = pwd;
 dt = 0.02;
-SF = 2;
+SF = 1;
 g = 386.1;
-ag0 = load([GMDir 'elcentro.txt']);
+ag0 = load(fullfile(GMDir,'elcentro.txt'));
 t0 = 0:length(ag0)-1;
 t0 = dt*t0;
 tEnd = t0(end);
@@ -104,7 +115,8 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 400; %length(ag);
+npts = 100; %length(ag);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Newmark Transient Analysis
@@ -120,74 +132,83 @@ a2 = (deltaT)*(1.0 - 0.5*gamma/beta);
 a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
-% max iterations and Tol
-maxIter = 20;
-Tol = 1e-3;
+% max iterations and tol
+maxIter = 1e4;
+tol = 1.0E-6;
 
 % initialize global response variables
-Q = zeros(numElem,npts);
-Qm = zeros(1,npts);
-errorNorms = zeros(1,npts);
-V = zeros(numElem,npts);
 U = zeros(ndf,npts);
 Udot = zeros(ndf,npts);
 Udotdot = zeros(ndf,npts);
+Pr = zeros(ndf,npts);
+errorNorms = zeros(1,npts);
+iters = zeros(1,npts);
+count = 1;
+% initialize element variables
+u = zeros(numElem,npts);
+pr = zeros(numElem,npts);
+uall = zeros(numElem,npts);
+prall = zeros(numElem,npts);
 
 % assemble the augmented matrices
-Sb = [B; Bx'*Ft];
 Mb = [M; zeros(nos,ndf)];
 Cb = [C; zeros(nos,ndf)];
 
-% calculations for each time step, nn
-for nn = 2:npts
-   iter = 1;
-   errorNorm = 1;
-   Pr = B*Q(:,nn);
-   Prb = [Pr; zeros(nos,1)];
-   Pb = -Mb*b*ag(nn);
+% calculations for each time step, i
+for i=1:npts-1
    
-   % calculate the initial trial responses
-   Q(:,nn) = Q(:,nn-1);
-   U(:,nn) = U(:,nn-1);
-   Udot(:,nn) = a1*Udot(:,nn-1) + a2*Udotdot(:,nn-1);
-   Udotdot(:,nn) = a3*Udot(:,nn-1) + a4*Udotdot(:,nn-1);
+   % get new response quantity
+   pr(:,i+1) = pr(:,i);
    
-   while (errorNorm >= Tol && iter <= maxIter)
-      % set trial forces in elements
-      for j=1:numElem
-         feval(Element{j},'setTrialStress',MatData(j),Q(j,nn));
-      end
+   % get applied loads
+   Pb = -Mb*b*ag(i+1);
+   
+   % Newton-Raphson algorithm
+   iter = 0;
+   errorNorm = 1.0;
+   while (errorNorm >= tol && iter <= maxIter)
       
       % get displacements and flexibilities from elements
       for j=1:numElem
-         V(j,nn) = feval(Element{j},'getStrain',MatData(j));
-         Ft(j,j) = feval(Element{j},'getTangent',MatData(j));
+         u(j,i+1) = feval(Element{j},'getStrain',MatData(j));
+%          f(j,j)  = feval(Element{j},'getTangent',MatData(j));
       end
       
-      U(:,nn) = Bi'*V(:,nn);
-      Udot(:,nn) = c2*(U(:,nn)-U(:,nn-1)) + a1*Udot(:,nn-1) + a2*Udotdot(:,nn-1);
-      Udotdot(:,nn) = c3*(U(:,nn)-U(:,nn-1)) + a3*Udot(:,nn-1) + a4*Udotdot(:,nn-1);
+      uall(:,count) = u(:,i+1);
       
-      Pr = B*Q(:,nn);
-      %Prb = [Pr; zeros(nos,1)];
-      Prb = [Pr; Bx'*V(:,nn)];
-      Sb = [B; Bx'*Ft];
+      % update response quantities
+      U(:,i+1) = Bi'*u(:,i+1);
+      Udot(:,i+1) = c2*(U(:,i+1)-U(:,i)) + a1*Udot(:,i) + a2*Udotdot(:,i);
+      Udotdot(:,i+1) = c3*(U(:,i+1)-U(:,i)) + a3*Udot(:,i) + a4*Udotdot(:,i);
       
-      % assemble the Jacobian matrix
-      R = Mb*Udotdot(:,nn) + Cb*Udot(:,nn) + Prb - Pb;
-      dRdQ = c3*Mb*Bi'*Ft + c2*Cb*Bi'*Ft + Sb;
-      dQ = -dRdQ\R;
-      % update variables
-      Q(:,nn) = Q(:,nn) + dQ;
+      % transform forces from element to global DOF
+      Pr(:,i+1) = B*pr(:,i+1);
+      Prb = [Pr(:,i+1); Bx'*u(:,i+1)];
+      Sb = [B; Bx'*f];
       
-      % update the tolerance and iteration number
-      % get energy increment
-      %errorNorm = norm(dQ);
-      errorNorm = norm(R);
+      % get rhs and jacobian
+      R(:,count) = Mb*Udotdot(:,i+1) + Cb*Udot(:,i+1) + Prb - Pb;
+      dRdQ = (c3*Mb + c2*Cb)*Bi'*f + Sb;
+      
+      % solve for force increments
+      deltaQ = dRdQ\(-R(:,count));
+      
+      % update response quantity
+      pr(:,i+1) = pr(:,i+1) + deltaQ;
+      prall(:,count+1) = pr(:,i+1);
+      % set trial forces in elements
+      for j=1:numElem
+         feval(Element{j},'setTrialStress',MatData(j),pr(j,i+1));
+      end
+      
+      % update the error norm and iteration number
+      errorNorm = norm(deltaQ);
+      %errorNorm = norm(R);
       iter = iter+1;
+      count = count + 1;
    end
-   
-   errorNorms(nn) = errorNorm;
+   iters(i) = iter;
+   errorNorms(i) = errorNorm;
    
    if (iter < maxIter)
       % commit the elements
@@ -195,7 +216,7 @@ for nn = 2:npts
          feval(Element{j},'commitState',MatData(j));
       end
    else
-      error(['failed to converge in Newton-Raphson algorithm: Step = ',num2str(nn),...
+      error(['failed to converge in Newton-Raphson algorithm: Step = ',num2str(i),...
          ', errorNorm = ',num2str(errorNorm)]);
    end
 end
@@ -206,19 +227,31 @@ for j=1:numElem
       feval(Element{j},'disconnect',MatData(j));
    end
 end
+fclose('all');
 
-%%%%%%%%%%%%%%%%%%
-% plot the figures
-%%%%%%%%%%%%%%%%%%
-t = t(1:nn);
+
+%%%%%%%%%%%%%%%%%%%
+% Post-Processing
+%%%%%%%%%%%%%%%%%%%
+t = t(1:npts);
+
+% % plot the element hysteresis
+figure;
+for j=1:numElem
+    subplot(numElem,1,j);
+    plot(u(j,:),pr(j,:),'r-');
+    xlabel(['u' num2str(j)]);
+    ylabel(['pr' num2str(j)]);
+    grid
+end
 
 % plot the element hysteresis
 figure;
 for j=1:numElem
     subplot(numElem,1,j);
-    plot(V(j,:),Q(j,:));
-    xlabel(['V' num2str(j)]);
-    ylabel(['Q' num2str(j)]);
+    plot(uall(j,:),prall(j,1:count-1),'r-');
+    xlabel(['uall' num2str(j)]);
+    ylabel(['prall' num2str(j)]);
     grid
 end
 
@@ -226,9 +259,9 @@ end
 figure;
 for j=1:numElem
     subplot(numElem,1,j);
-    plot(t,Q(j,:));
+    plot(t,pr(j,:),'r-');
     xlabel('Time [sec]')
-    ylabel(['Q' num2str(j)]);
+    ylabel(['pr' num2str(j)]);
     grid
 end
 
@@ -236,45 +269,76 @@ end
 figure;
 for j=1:numElem
     subplot(numElem,1,j);
-    plot(t,V(j,:));
+    plot(t,u(j,:),'r-');
     xlabel('Time [sec]')
-    ylabel(['V' num2str(j)]);
+    ylabel(['u' num2str(j)]);
     grid
 end
 
-% plot the Node response history
+% % plot the Node response history
+% figure;
+% for j=1:ndf
+%     subplot(3,ndf,j);
+%     plot(t,U(j,:),'r-');
+%     xlabel('Time [sec]')
+%     ylabel(['U' num2str(j)]);
+%     grid    
+%     subplot(3,ndf,j+ndf);
+%     plot(t,Udot(j,:),'r-');
+%     xlabel('Time [sec]')
+%     ylabel(['Udot' num2str(j)]);
+%     grid
+%     subplot(3,ndf,j+2*ndf);
+%     plot(t,Udot(j,:),'r-');
+%     xlabel('Time [sec]')
+%     ylabel(['Udot' num2str(j)]);
+%     grid
+% end
+
 figure;
 for j=1:ndf
-    subplot(3,ndf,j);
-    plot(t,U(j,:));
-    xlabel('Time [sec]')
-    ylabel(['U' num2str(j)]);
-    grid    
-    subplot(3,ndf,j+ndf);
-    plot(t,Udot(j,:));
-    xlabel('Time [sec]')
-    ylabel(['Udot' num2str(j)]);
-    grid
-    subplot(3,ndf,j+2*ndf);
-    plot(t,Udot(j,:));
-    xlabel('Time [sec]')
-    ylabel(['Udot' num2str(j)]);
+    subplot(ndf,1,j);
+    plot(R(j,:),'r-');
+    xlabel(['[-]' num2str(j)]);
+    ylabel(['R' num2str(j)]);
     grid
 end
 
 % error
 figure;
-plot(t,errorNorms)
+plot(t,errorNorms,'r-')
 ylabel('Error')
 xlabel('Time [sec]')
 grid
 
-% ground motion
+% Iteration
 figure;
-plot(t,ag0(1:length(t)))
-ylabel('Ag')
+plot(t,iters,'r-')
+ylabel('Error')
 xlabel('Time [sec]')
 grid
+
+% plot all experimental displace
+figure;
+plot(uall(1,2:end),'r-')
+ylabel('uall')
+xlabel('Step [-]')
+grid
+
+% experimental element trial force
+figure;
+eF1 = load('ElementForce1.txt');
+plot(eF1,'r-')
+ylabel('trialForce')
+xlabel('Step [-]')
+grid
+
+% % ground motion
+% figure;
+% plot(t,ag(1:length(t)),'r-')
+% ylabel('Ag')
+% xlabel('Time [sec]')
+% grid
 
 % remove the subroutine path to the folder
 % rmpath([pwd '\Material models']);
