@@ -18,12 +18,15 @@ function varargout = BiLinearElastic(action,MatData,strain)
 % Revision: A
 
 % state variables
+persistent stressT;
 persistent strainT;
+
+persistent FID;
 
 % extract material properties
 tag = MatData.tag;      % unique material tag
 E   = MatData.E;        % initial elastic modulus
-Fy  = MatData.Fy;       % yield stress
+fy  = MatData.fy;       % yield stress
 b   = MatData.b;        % hardening ratio
 
 if isfield(MatData,'id')
@@ -35,12 +38,16 @@ end
 switch action
    % ======================================================================
    case 'initialize'
+      stressT(:,tag) = zeros(ndf,1);
       strainT(:,tag) = zeros(ndf,1);
+      
+      FID = fopen(['ElementDisp',num2str(tag),'.txt'],'w+');
       
       varargout = {0.0};
    % ======================================================================
    case 'setTrialStrain'
       strainT(:,tag) = strain;
+      fprintf(FID,'%f\n',strain);
       
       varargout = {0};
    % ======================================================================
@@ -48,8 +55,8 @@ switch action
       varargout = {strainT(:,tag)};
    % ======================================================================
    case 'getStress'
-      if abs(strainT(:,tag)) > Fy/E
-         stressT = sign(strainT(:,tag))*(Fy+(abs(strainT(:,tag))-Fy/E)*(E*b));
+      if abs(strainT(:,tag)) > fy/E
+         stressT = sign(strainT(:,tag))*(fy+(abs(strainT(:,tag))-fy/E)*(E*b));
       else
          stressT = strainT(:,tag)*E;
       end
@@ -57,7 +64,7 @@ switch action
       varargout = {stressT};
    % ======================================================================
    case 'getTangent'
-      if abs(strainT(:,tag)) > Fy/E
+      if abs(strainT(:,tag)) > fy/E
          tangentT = b*E;
       else
          tangentT = E;
