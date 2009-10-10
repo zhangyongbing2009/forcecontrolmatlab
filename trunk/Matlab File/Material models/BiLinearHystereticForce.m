@@ -1,6 +1,6 @@
-function varargout = BiLinearHysteric(action,MatData,strain)
-%BILINEARHYSTERIC bilinear-elastic material for displacement method
-% varargout = BiLinearHysteric(action,MatData,stress)
+function varargout = BiLinearHystereticForce(action,MatData,stress)
+%BILINEARHYSTERETICFORCE bilinear-hysteretic material for force method
+% varargout = BiLinearHystereticForce(action,MatData,stress)
 %
 % action  : switch with following possible values
 %              'initialize'         initialize internal variables
@@ -24,16 +24,18 @@ persistent strainT;
 persistent stressC;
 persistent strainC;
 
+persistent FID;
+
 % extract material properties
 tag  = MatData.tag;        % unique material tag
 E    = MatData.E;          % initial elastic modulus
-Fy   = MatData.Fy;         % yield stress
+fy   = MatData.fy;         % yield stress
 b    = MatData.b;          % hardening ratio
-F0   = (1-b)*Fy;           % stress at zero strain
-ey   = Fy/E;               % yield strain
+F0   = (1-b)*fy;           % stress at zero strain
+ey   = fy/E;               % yield strain
 B0   = stressC-E*strainC;  % constant used to define the initial stiffness line which pass throgh the current stress
 Fy1  = (F0-b*B0)/(1-b); % Upper bound yield stress limit
-Fy2  = Fy1-2*Fy;            % Lower bound yield stress limit
+Fy2  = Fy1-2*fy;            % Lower bound yield stress limit
 ey1  = (F0-B0)/E/(1-b); % Upper bound yield strain limit
 ey2  = ey1-2*ey;           % Lower bound yield strain limit
 
@@ -51,41 +53,47 @@ switch action
       stressC(tag) = zeros(ndf,1);
       strainC(tag) = zeros(ndf,1);
       
+      FID = fopen(['ElementForce',num2str(tag),'.txt'],'w+');
+      
       varargout = {0.0};
    % ======================================================================
-   case 'setTrialStrain'
-      strainT(:,tag) = strain;      
+   case 'setTrialStress'
+      stressT(:,tag) = stress;
+      fprintf(FID,'%f\n',stress);
+      
       varargout = {0};
    % ======================================================================
    case 'getStress'
-       % calculate the stress
-       if strainT(:,tag) > ey1
-           stressT = Fy1+(strainT(:,tag)-ey1)*b*E;
-       elseif strainT(:,tag) < ey2
-           stressT = Fy2+(strainT(:,tag)-ey2)*b*E;
-       else
-           stressT = strainT(:,tag)*E+B0;
-       end
-       
-      varargout = {stressT};
+      varargout = {stressT(:,tag)};
    % ======================================================================
-   case 'getStrain'   
-      varargout = {strainT(:,tag)};
+   case 'getStrain'
+       % calculate the strain
+       if stressT(:,tag) > Fy1
+           strainT = ey1+(stressT(:,tag)-Fy1)/b/E;
+       elseif stressT(:,tag) < Fy2
+           strainT = ey2+(stressT(:,tag)-Fy2)/b/E;
+       else
+           strainT = (stressT(:,tag)-B0)/E;
+       end
+
+       varargout = {strainT};
    % ======================================================================
    case 'getTangent'
-      if strainT(:,tag) > ey1 || strainT(:,tag) < ey2
-         tangentT = b*E;
+      if stressT(:,tag) >= Fy1 || stressT(:,tag) <= Fy2
+         tangentT = 1/(b*E);
       else
-         tangentT = E;
-      end      
+         tangentT = 1/E;
+      end
+      
       varargout = {tangentT};
    % ======================================================================
    case 'getInitialTangent'
-      varargout = {E};
+      varargout = {1/E};
    % ======================================================================
    case 'commitState'
       stressC(tag) = stressT(tag);
       strainC(tag) = strainT(tag);
-      varargout = {0};      
+      
+      varargout = {0};
    % ======================================================================
 end
