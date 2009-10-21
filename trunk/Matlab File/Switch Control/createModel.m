@@ -28,8 +28,8 @@ A = B';
 
 % element 1 properties
 % Element{1} = 'Elastic';
-% Element{1} = 'BiLinearElastic';
-Element{1} = 'BiLinearHysteretic';
+Element{1} = 'BiLinearElastic';
+% Element{1} = 'BiLinearHysteretic';
 % Element{1} = 'Hardening';
 % Element{1} = 'NLElastic';
 % Element{1} = 'Experimental';

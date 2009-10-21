@@ -92,7 +92,7 @@ switch action
       varargout = {stressT};
    % ======================================================================
    case 'getTangentK'
-      if abs(strainT(:,tag)) > fy/E
+      if abs(strainT(:,tag)) >= fy/E
          tangentT = b*E;
       else
          tangentT = E;
@@ -101,7 +101,7 @@ switch action
       varargout = {tangentT};
    % ======================================================================
    case 'getTangentF'
-      if abs(stressT(:,tag)) > fy
+      if abs(stressT(:,tag)) >= fy
          tangentT = 1/(b*E);
       else
          tangentT = 1/E;
