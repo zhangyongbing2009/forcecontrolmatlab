@@ -5,7 +5,7 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all;  close all;  clc;
+clear all; % close all;  clc;
 
 % add the subroutine path to the folder
 %addpath([pwd '\Material models']);
@@ -37,7 +37,7 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 100;% length(ag);
+npts = 400;% length(ag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize Analysis
@@ -63,17 +63,18 @@ for i=1:npts-1
    
    % get new response quantities
    STATE.U = U(:,i);
-   STATE.Udot = ANALYSIS.a1*Udot(:,i) + ANALYSIS.a2*Udotdot(:,i);
-   STATE.Udotdot = ANALYSIS.a3*Udot(:,i) + ANALYSIS.a4*Udotdot(:,i);
+   STATE.Udot = Udot(:,i);
+   STATE.Udotdot = Udotdot(:,i);
    STATE.Pr = Pr(:,i);
    STATE.pr = pr(:,i);
    STATE.u = u(:,i);
+   STATE.i = i;
    
    % get applied loads
    STATE.Ptp1 = -MODEL.M*b*ag(i+1);
    
    % Newton-Raphson algorithm
-   [model analysis state] = DM_NLDynamicNR(MODEL, ANALYSIS, STATE);
+   [model analysis state] = feval(ANALYSIS.scheme, MODEL, ANALYSIS, STATE);
    
    U(:,i+1) = state.U;
    Udot(:,i+1) = state.Udot;
@@ -103,7 +104,7 @@ t = t(1:npts);
 figure;
 for j=1:MODEL.numElem
     subplot(MODEL.numElem,1,j);
-    plot(u(j,:),pr(j,:),'b-');
+    plot(u(j,:),pr(j,:),ANALYSIS.plotFlag);
     xlabel(['u' num2str(j)]);
     ylabel(['pr' num2str(j)]);
     grid
@@ -113,47 +114,47 @@ end
 % figure;
 % for j=1:numElem
 %     subplot(numElem,1,j);
-%     plot(uall(j,1:count-1),prall(j,:),'b-');
+%     plot(uall(j,1:count-1),prall(j,:),ANALYSIS.plotFlag);
 %     xlabel(['uall' num2str(j)]);
 %     ylabel(['prall' num2str(j)]);
 %     grid
 % end
 
-% % plot the element force history
-% figure;
-% for j=1:numElem
-%     subplot(numElem,1,j);
-%     plot(t,pr(j,:),'b-');
-%     xlabel('Time [sec]')
-%     ylabel(['pr' num2str(j)]);
-%     grid
-% end
-% 
-% % plot the element displacement history
-% figure;
-% for j=1:numElem
-%     subplot(numElem,1,j);
-%     plot(t,u(j,:),'b-');
-%     xlabel('Time [sec]')
-%     ylabel(['u' num2str(j)]);
-%     grid
-% end
-% 
-% % plot the Node response history
+% plot the element force history
+figure;
+for j=1:MODEL.numElem
+    subplot(MODEL.numElem,1,j);
+    plot(t,pr(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['pr' num2str(j)]);
+    grid
+end
+
+% plot the element displacement history
+figure;
+for j=1:MODEL.numElem
+    subplot(MODEL.numElem,1,j);
+    plot(t,u(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['u' num2str(j)]);
+    grid
+end
+
+% plot the Node response history
 figure;
 for j=1:MODEL.ndf
     subplot(3,MODEL.ndf,j);
-    plot(t,U(j,:),'b-');
+    plot(t,U(j,:),ANALYSIS.plotFlag);
     xlabel('Time [sec]')
     ylabel(['U' num2str(j)]);
     grid    
     subplot(3,MODEL.ndf,j+MODEL.ndf);
-    plot(t,Udot(j,:),'b-');
+    plot(t,Udot(j,:),ANALYSIS.plotFlag);
     xlabel('Time [sec]')
     ylabel(['Udot' num2str(j)]);
     grid
     subplot(3,MODEL.ndf,j+2*MODEL.ndf);
-    plot(t,Udot(j,:),'b-');
+    plot(t,Udot(j,:),ANALYSIS.plotFlag);
     xlabel('Time [sec]')
     ylabel(['Udot' num2str(j)]);
     grid
@@ -185,7 +186,7 @@ end
 % % experimental element trial displacement
 figure;
 eD1 = load('ElementDisp1.txt');
-plot(eD1,'b-')
+plot(eD1,ANALYSIS.plotFlag)
 ylabel('trialDisp')
 xlabel('Step [-]')
 grid
@@ -193,14 +194,21 @@ grid
 % % experimental element trial displacement
 figure;
 eF1 = load('ElementForce1.txt');
-plot(eD1,'b-')
+plot(eF1,ANALYSIS.plotFlag)
 ylabel('trialForce')
 xlabel('Step [-]')
 grid
 
-% % experimental element trial displacement
+% experimental element trial displacement
+% figure;
+% plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+% ylabel('trialForce')
+% xlabel('trialDisp')
+% grid
+
+% experimental element trial displacement
 figure;
-plot(eD1(1:end-1),eF1(2:end),'b-')
+plot(eD1(2:end),eF1(1:end-1),ANALYSIS.plotFlag)
 ylabel('trialForce')
 xlabel('trialDisp')
 grid
@@ -208,7 +216,7 @@ grid
 % 
 % % plot all experimental force
 % figure;
-% plot(prall(1,2:end),'b-')
+% plot(prall(1,2:end),ANALYSIS.plotFlag)
 % ylabel('prall')
 % xlabel('Step [-]')
 % grid
@@ -216,7 +224,7 @@ grid
 
 % % ground motion
 % figure;
-% plot(t,ag(1:length(t)),'b-')
+% plot(t,ag(1:length(t)),ANALYSIS.plotFlag)
 % ylabel('Ag')
 % xlabel('Time [sec]')
 % grid

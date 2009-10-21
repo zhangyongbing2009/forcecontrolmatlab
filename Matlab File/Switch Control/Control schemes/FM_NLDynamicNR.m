@@ -2,6 +2,7 @@ function [model analysis state] = FM_NLDynamicNR(MODEL, ANALYSIS, STATE)
 % Nonlinear dynamic analysis using force method
 %
 % Written by T.Y. Yang and Andreas Schellenberg 09/08/2009
+
 % Model Variables
 A = MODEL.A;
 B = MODEL.B;
@@ -12,6 +13,9 @@ K = MODEL.K;
 M = MODEL.M;
 Element = MODEL.Element;
 MatData = MODEL.Mat;
+numElem = MODEL.numElem;
+ndf = MODEL.ndf;
+nos = MODEL.nos;
 
 % Analysis Variables
 c1 = ANALYSIS.c1;
@@ -29,9 +33,8 @@ U = STATE.U;
 Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
-
-numElem = size(B,2);
-
+pr = STATE.pr;
+i = STATE.i;
 
 % initialize element variables
 % u = zeros(numElem,npts);
@@ -42,11 +45,6 @@ numElem = size(B,2);
 % assemble the augmented matrices
 Mb = [M; zeros(nos,ndf)];
 Cb = [C; zeros(nos,ndf)];
-   
-% get new response quantity
-pr(:,i+1) = pr(:,i);
-
-% get applied loads
 Pb = [Ptp1; zeros(nos,1)];
 
 % Newton-Raphson algorithm
@@ -57,32 +55,32 @@ while (errorNorm >= tol && iter <= maxIter)
     % get displacements and flexibilities from elements
     for j=1:numElem
         u(j,1) = feval(Element{j},'getStrain',MatData(j));
-        f(j,j)  = feval(Element{j},'getTangentF',MatData(j));
+        f(j,j) = feval(Element{j},'getTangentF',MatData(j));
     end
 
     % update response quantities
-    U(:,i+1) = Bi'*u(:,i+1);
-    Udot(:,i+1) = c2*(U(:,i+1)-U(:,i)) + a1*Udot(:,i) + a2*Udotdot(:,i);
-    Udotdot(:,i+1) = c3*(U(:,i+1)-U(:,i)) + a3*Udot(:,i) + a4*Udotdot(:,i);
+    UTrial = Bi'*u;
+    UdotTrial = c2*(UTrial-U) + a1*Udot + a2*Udotdot;
+    UdotdotTrial = c3*(UTrial-U) + a3*Udot + a4*Udotdot;
 
     % transform forces from element to global DOF
-    Pr(:,i+1) = B*pr(:,i+1);
-    Prb = [Pr(:,i+1); Bx'*u(:,i+1)];
+    Pr = B*pr;
+    Prb = [Pr; Bx'*u];
     Sb = [B; Bx'*f];
 
     % get rhs and jacobian
-    R(:,count) = Mb*Udotdot(:,i+1) + Cb*Udot(:,i+1) + Prb - Pb;
+    R = Mb*UdotdotTrial + Cb*UdotTrial + Prb - Pb;
     dRdQ = (c3*Mb + c2*Cb)*Bi'*f + Sb;
 
     % solve for force increments
-    deltaQ = dRdQ\(-R(:,count));
+    deltaQ = dRdQ\(-R);
 
     % update response quantity
-    pr(:,i+1) = pr(:,i+1) + deltaQ;
-    prall(:,count+1) = pr(:,i+1);
+    pr = pr + deltaQ;
+
     % set trial forces in elements
     for j=1:numElem
-        feval(Element{j},'setTrialStress',MatData(j),pr(j,i+1));
+        feval(Element{j},'setTrialStress',MatData(j),pr(j,1));
     end
 
     % update the error norm and iteration number
@@ -90,6 +88,16 @@ while (errorNorm >= tol && iter <= maxIter)
     %errorNorm = norm(R);
     iter = iter+1;
 end
+
+state.U = UTrial;
+state.Udot = UdotTrial;
+state.Udotdot = UdotdotTrial;
+state.pr = pr;
+state.u = u;
+state.Pr = Pr;
+model.f = f;
+model.K = MODEL.K;
+analysis = ANALYSIS;
 
 if (iter < maxIter)
     % commit the elements

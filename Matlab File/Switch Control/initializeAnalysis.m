@@ -14,9 +14,20 @@ a2 = (deltaT)*(1.0 - 0.5*gamma/beta);
 a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
+% Analysis Method
+% scheme = 'FM_NLDynamicNR';
+% scheme = 'FM_NLDynamicNRLimit';
+% scheme = 'FM_NLDynamicNRwFixIter';
+scheme = 'DM_NLDynamicNR';
+% scheme = 'DM_NLDynamicNRLimit';
+% scheme = 'DM_NLDynamicNRwFixIter';
+% plotFlag = 'r-';
+plotFlag = 'b-';
+
 % max iterations and tol
 maxIter = 100;
 tol = 1.0E-6;
+incrLimit = 1.0e-1;
 
 % Store analysis variables
 analysis.beta  = beta;
@@ -30,5 +41,8 @@ analysis.a3 = a3;
 analysis.a4 = a4;
 
 % max iterations and tol
+analysis.scheme = scheme;
+analysis.plotFlag = plotFlag;
 analysis.maxIter = maxIter;
 analysis.tol = tol;
+analysis.incrLimit = incrLimit;

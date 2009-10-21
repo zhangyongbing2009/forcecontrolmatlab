@@ -11,11 +11,16 @@ K = MODEL.K;
 M = MODEL.M;
 Element = MODEL.Element;
 MatData = MODEL.Mat;
+numElem = MODEL.numElem;
 
 % Analysis Variables
 c1 = ANALYSIS.c1;
 c2 = ANALYSIS.c2;
 c3 = ANALYSIS.c3;
+a1 = ANALYSIS.a1;
+a2 = ANALYSIS.a2;
+a3 = ANALYSIS.a3;
+a4 = ANALYSIS.a4;
 maxIter = ANALYSIS.maxIter;
 tol = ANALYSIS.tol;
 
@@ -23,9 +28,10 @@ tol = ANALYSIS.tol;
 U = STATE.U;
 Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
+Udot = a1*STATE.Udot + a2*STATE.Udotdot;
+Udotdot = a3*STATE.Udot + a4*STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
-
-numElem = size(B,2);
+i = STATE.i;
    
 % Newton-Raphson algorithm
 iter = 0;
@@ -35,7 +41,7 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     % get resisting forces and stiffness from elements
     for j=1:numElem
         pr(j,1) = feval(Element{j},'getStress',MatData(j));
-        k(j,j)    = feval(Element{j},'getTangentK',MatData(j));
+        k(j,j)  = feval(Element{j},'getTangentK',MatData(j));
     end
 
     % transform forces and stiffness from element to global DOF
