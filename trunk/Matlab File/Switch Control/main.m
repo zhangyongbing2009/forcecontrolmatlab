@@ -51,7 +51,8 @@ Udotdot = zeros(MODEL.ndf,npts);
 Pr = zeros(MODEL.ndf,npts);
 errorNorms = zeros(1,npts);
 iters = zeros(1,npts);
-count = 1;
+controlModes = zeros(1,npts);
+
 % initialize element variables
 u = zeros(MODEL.numElem,npts);
 pr = zeros(MODEL.numElem,npts);
@@ -73,8 +74,8 @@ for i=1:npts-1
    % get applied loads
    STATE.Ptp1 = -MODEL.M*b*ag(i+1);
    
-   % Newton-Raphson algorithm
-   [model analysis state] = feval(ANALYSIS.scheme, MODEL, ANALYSIS, STATE);
+   % Run Hybrid Simulation using switch scheme
+   [model analysis state] = feval(ANALYSIS.schemeSwitch, MODEL, ANALYSIS, STATE);
    
    U(:,i+1) = state.U;
    Udot(:,i+1) = state.Udot;
@@ -82,6 +83,7 @@ for i=1:npts-1
    Pr(:,i+1) = state.Pr;
    pr(:,i+1) = state.pr;
    u(:,i+1) = state.u;
+   controlModes(:,i+1) = state.controlMode;
    
 end
 
@@ -101,14 +103,14 @@ fclose('all');
 t = t(1:npts);
 
 % % plot the element hysteresis
-figure;
-for j=1:MODEL.numElem
-    subplot(MODEL.numElem,1,j);
-    plot(u(j,:),pr(j,:),ANALYSIS.plotFlag);
-    xlabel(['u' num2str(j)]);
-    ylabel(['pr' num2str(j)]);
-    grid
-end
+% figure;
+% for j=1:MODEL.numElem
+%     subplot(MODEL.numElem,1,j);
+%     plot(u(j,:),pr(j,:),ANALYSIS.plotFlag);
+%     xlabel(['u' num2str(j)]);
+%     ylabel(['pr' num2str(j)]);
+%     grid
+% end
 
 % plot the element hysteresis
 % figure;
@@ -121,44 +123,44 @@ end
 % end
 
 % plot the element force history
-figure;
-for j=1:MODEL.numElem
-    subplot(MODEL.numElem,1,j);
-    plot(t,pr(j,:),ANALYSIS.plotFlag);
-    xlabel('Time [sec]')
-    ylabel(['pr' num2str(j)]);
-    grid
-end
-
-% plot the element displacement history
-figure;
-for j=1:MODEL.numElem
-    subplot(MODEL.numElem,1,j);
-    plot(t,u(j,:),ANALYSIS.plotFlag);
-    xlabel('Time [sec]')
-    ylabel(['u' num2str(j)]);
-    grid
-end
-
-% plot the Node response history
-figure;
-for j=1:MODEL.ndf
-    subplot(3,MODEL.ndf,j);
-    plot(t,U(j,:),ANALYSIS.plotFlag);
-    xlabel('Time [sec]')
-    ylabel(['U' num2str(j)]);
-    grid    
-    subplot(3,MODEL.ndf,j+MODEL.ndf);
-    plot(t,Udot(j,:),ANALYSIS.plotFlag);
-    xlabel('Time [sec]')
-    ylabel(['Udot' num2str(j)]);
-    grid
-    subplot(3,MODEL.ndf,j+2*MODEL.ndf);
-    plot(t,Udot(j,:),ANALYSIS.plotFlag);
-    xlabel('Time [sec]')
-    ylabel(['Udot' num2str(j)]);
-    grid
-end
+% figure;
+% for j=1:MODEL.numElem
+%     subplot(MODEL.numElem,1,j);
+%     plot(t,pr(j,:),ANALYSIS.plotFlag);
+%     xlabel('Time [sec]')
+%     ylabel(['pr' num2str(j)]);
+%     grid
+% end
+% 
+% % plot the element displacement history
+% figure;
+% for j=1:MODEL.numElem
+%     subplot(MODEL.numElem,1,j);
+%     plot(t,u(j,:),ANALYSIS.plotFlag);
+%     xlabel('Time [sec]')
+%     ylabel(['u' num2str(j)]);
+%     grid
+% end
+% 
+% % plot the Node response history
+% figure;
+% for j=1:MODEL.ndf
+%     subplot(3,MODEL.ndf,j);
+%     plot(t,U(j,:),ANALYSIS.plotFlag);
+%     xlabel('Time [sec]')
+%     ylabel(['U' num2str(j)]);
+%     grid    
+%     subplot(3,MODEL.ndf,j+MODEL.ndf);
+%     plot(t,Udot(j,:),ANALYSIS.plotFlag);
+%     xlabel('Time [sec]')
+%     ylabel(['Udot' num2str(j)]);
+%     grid
+%     subplot(3,MODEL.ndf,j+2*MODEL.ndf);
+%     plot(t,Udot(j,:),ANALYSIS.plotFlag);
+%     xlabel('Time [sec]')
+%     ylabel(['Udot' num2str(j)]);
+%     grid
+% end
 
 % figure;
 % for j=1:ndf
@@ -183,7 +185,16 @@ end
 % xlabel('Time [sec]')
 % grid
 % 
-% % experimental element trial displacement
+
+% Control Mode
+figure;
+plot(controlModes)
+ylabel('Control Modes')
+xlabel('Time [sec]')
+grid
+
+
+% experimental element trial displacement
 figure;
 eD1 = load('ElementDisp1.txt');
 plot(eD1,ANALYSIS.plotFlag)
