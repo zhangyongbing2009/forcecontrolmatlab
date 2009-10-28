@@ -15,17 +15,21 @@ a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
 % Analysis Method
-% scheme = 'FM_NLDynamicNR';
-% scheme = 'FM_NLDynamicNRLimit';
-% scheme = 'FM_NLDynamicNRwFixIter';
-scheme = 'DM_NLDynamicNR';
-% scheme = 'DM_NLDynamicNRLimit';
-% scheme = 'DM_NLDynamicNRwFixIter';
+schemeDisp = 'DM_NLDynamicNR';
+% schemeDisp = 'DM_NLDynamicNRLimit';
+% schemeDisp = 'DM_NLDynamicNRwFixIter';
+schemeForce = 'FM_NLDynamicNR';
+% schemeForce = 'FM_NLDynamicNRLimit';
+% schemeForce = 'FM_NLDynamicNRwFixIter';
+
+% Switch Method
+schemeSwitch = 'simpleYield';
+
 % plotFlag = 'r-';
 plotFlag = 'b-';
 
 % max iterations and tol
-maxIter = 100;
+maxIter = 10;
 tol = 1.0E-6;
 incrLimit = 1.0e-1;
 
@@ -41,7 +45,9 @@ analysis.a3 = a3;
 analysis.a4 = a4;
 
 % max iterations and tol
-analysis.scheme = scheme;
+analysis.schemeDisp = schemeDisp;
+analysis.schemeForce = schemeForce;
+analysis.schemeSwitch = schemeSwitch;
 analysis.plotFlag = plotFlag;
 analysis.maxIter = maxIter;
 analysis.tol = tol;

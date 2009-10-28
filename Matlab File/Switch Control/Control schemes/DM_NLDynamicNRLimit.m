@@ -11,7 +11,7 @@ C = MODEL.C;
 K = MODEL.K;
 M = MODEL.M;
 Element = MODEL.Element;
-MatData = MODEL.Mat;
+MatData = MODEL.MatData;
 numElem = MODEL.numElem;
 
 % Analysis Variables
