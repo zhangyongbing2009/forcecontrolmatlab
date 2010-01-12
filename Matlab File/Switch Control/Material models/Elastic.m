@@ -26,6 +26,9 @@ function varargout = Elastic(action,MatData,trialValue)
 % state variables
 persistent strainT;
 persistent stressT;
+% trial history variables
+persistent stressC;
+persistent strainC;
 
 persistent FIDd;
 persistent FIDf;
@@ -56,8 +59,20 @@ switch action
       
       varargout = {0};
    % ======================================================================
+   case 'setIncrTrialStrain'
+      strainT(:,tag) = strainC(:,tag) + trialValue;
+      fprintf(FIDd,'%f\n',trialValue);
+      
+      varargout = {0};
+   % ======================================================================
    case 'setTrialStress'
       stressT(:,tag) = trialValue;
+      fprintf(FIDf,'%f\n',trialValue);
+      
+      varargout = {0};
+   % ======================================================================
+   case 'setIncrTrialStress'
+      stressT(:,tag) = stressC(:,tag) + trialValue;
       fprintf(FIDf,'%f\n',trialValue);
       
       varargout = {0};
@@ -91,6 +106,9 @@ switch action
       varargout = {1/E};
    % ======================================================================
    case 'commitState'
+      stressC(:,tag) = stressT(:,tag);
+      strainC(:,tag) = strainT(:,tag);
+      
       varargout = {0};      
    % ======================================================================
 end
