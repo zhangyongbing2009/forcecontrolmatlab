@@ -35,9 +35,6 @@ Udotdot = a3*STATE.Udot + a4*STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
 i = STATE.i;
 
-% get applied loads
-Ptp1 = -M*b*ag(i+1);
-
 % Newton-Raphson algorithm
 iter = 0;
 errorNorm = 1.0;
@@ -46,7 +43,7 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     % get resisting forces and stiffness from elements
     for j=1:numElem
         pr(j,1) = feval(Element{j},'getStress',MatData(j));
-        k(j,j)    = feval(Element{j},'getTangent',MatData(j));
+        k(j,j)    = feval(Element{j},'getTangentK',MatData(j));
     end
 
     % transform forces and stiffness from element to global DOF
@@ -56,7 +53,9 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     % get rhs and jacobian
     R  = M*Udotdot + C*Udot + Pr - Ptp1;
     dRdU = c3*M + c2*C + c1*K;
-
+    normK = norm(K);
+    normdd = norm(c3*M + c2*C);
+    
     % solve for displacement increments
     deltaU = dRdU\(-R);
 
@@ -77,7 +76,7 @@ while ((errorNorm >= tol) && (iter <= maxIter))
 
     % set trial response in elements
     for j=1:numElem
-        feval(Element{j},'setTrialStrain',MatData(j),u(j,i+1));
+        feval(Element{j},'setTrialStrain',MatData(j),u(j,:));
     end
 
     % update the error norm and iteration number
@@ -92,10 +91,14 @@ state.Udotdot = Udotdot;
 state.pr = pr;
 state.u = u;
 state.Pr = Pr;
+state.iter = iter;
+state.errorNorm = errorNorm;
+state.normK = normK;
+state.normdd = normdd;
 model.K = K;
 analysis = ANALYSIS;
 
-if (iter < maxIter)
+if (iter <= maxIter || errorNorm <= tol)
     % commit the elements
     for j=1:numElem
         feval(Element{j},'commitState',MatData(j));

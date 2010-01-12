@@ -26,7 +26,7 @@ tol = ANALYSIS.tol;
 
 % State Variables
 U = STATE.U;
-U = UTrial;
+UTrial = U;
 Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
 Udot = a1*STATE.Udot + a2*STATE.Udotdot;
@@ -39,7 +39,7 @@ for iter=1:maxIter
     % get resisting forces and stiffness from elements
     for j=1:numElem
         pr(j,1) = feval(Element{j},'getStress',MatData(j));
-        k(j,j)    = feval(Element{j},'getTangent',MatData(j));
+        k(j,j)  = feval(Element{j},'getTangentK',MatData(j));
     end
 
     % transform forces and stiffness from element to global DOF
@@ -75,7 +75,7 @@ end
 % get resisting forces and stiffness from elements
 for j=1:numElem
     pr(j,1) = feval(Element{j},'getStress',MatData(j));
-    k(j,j)    = feval(Element{j},'getTangent',MatData(j));
+    k(j,j)    = feval(Element{j},'getTangentK',MatData(j));
 end
 
 % transform forces and stiffness from element to global DOF
@@ -106,5 +106,7 @@ state.Udotdot = Udotdot;
 state.pr = pr;
 state.u = u;
 state.Pr = Pr;
+state.iter = maxIter;
+state.errorNorm = errorNorm;
 model.K = K;
 analysis = ANALYSIS;

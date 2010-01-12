@@ -5,10 +5,12 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all; % close all;  clc;
+clear all; close all;  clc;
 
 % add the subroutine path to the folder
-%addpath([pwd '\Material models']);
+% addpath([pwd '\Material models']);
+% addpath([pwd '\Switch schemes']);
+% addpath([pwd '\Control schemes']);
 addpath([pwd '/Material models']);
 addpath([pwd '/Switch schemes']);
 addpath([pwd '/Control schemes']);
@@ -52,12 +54,18 @@ Pr = zeros(MODEL.ndf,npts);
 errorNorms = zeros(1,npts);
 iters = zeros(1,npts);
 controlModes = zeros(1,npts);
+ks = zeros(1,npts);
+normKs = zeros(1,npts);
+normdds = zeros(1,npts);
 
 % initialize element variables
 u = zeros(MODEL.numElem,npts);
 pr = zeros(MODEL.numElem,npts);
 uall = zeros(MODEL.numElem,npts);
 prall = zeros(MODEL.numElem,npts);
+
+STATE.prPrev = zeros(MODEL.numElem,1);
+STATE.uPrev = zeros(MODEL.numElem,1);
 
 % calculations for each time step, i
 for i=1:npts-1
@@ -70,6 +78,7 @@ for i=1:npts-1
    STATE.pr = pr(:,i);
    STATE.u = u(:,i);
    STATE.i = i;
+   STATE.controlMode = controlModes(:,i);
    
    % get applied loads
    STATE.Ptp1 = -MODEL.M*b*ag(i+1);
@@ -77,6 +86,8 @@ for i=1:npts-1
    % Run Hybrid Simulation using switch scheme
    [model analysis state] = feval(ANALYSIS.schemeSwitch, MODEL, ANALYSIS, STATE);
    
+   STATE.prPrev = pr(:,i);
+   STATE.uPrev = u(:,i);
    U(:,i+1) = state.U;
    Udot(:,i+1) = state.Udot;
    Udotdot(:,i+1) = state.Udotdot;
@@ -84,7 +95,12 @@ for i=1:npts-1
    pr(:,i+1) = state.pr;
    u(:,i+1) = state.u;
    controlModes(:,i+1) = state.controlMode;
-   
+   ks(:,i+1) = state.k;
+   iters(:,i+1) = state.iter;
+   errorNorms(:,i+1) = state.errorNorm;
+   normKs(:,i+1) = state.normK;
+   normdds(:,i+1) = state.normdd;
+
 end
 
 % disconnect from experimental sites
@@ -123,15 +139,15 @@ t = t(1:npts);
 % end
 
 % plot the element force history
-% figure;
-% for j=1:MODEL.numElem
-%     subplot(MODEL.numElem,1,j);
-%     plot(t,pr(j,:),ANALYSIS.plotFlag);
-%     xlabel('Time [sec]')
-%     ylabel(['pr' num2str(j)]);
-%     grid
-% end
-% 
+figure;
+for j=1:MODEL.numElem
+    subplot(MODEL.numElem,1,j);
+    plot(t,pr(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['pr' num2str(j)]);
+    grid
+end
+ 
 % % plot the element displacement history
 % figure;
 % for j=1:MODEL.numElem
@@ -171,7 +187,7 @@ t = t(1:npts);
 %     grid
 % end
 
-% % error
+% error
 % figure;
 % plot(t,errorNorms)
 % ylabel('Error')
@@ -181,48 +197,63 @@ t = t(1:npts);
 % % Iterations
 % figure;
 % plot(t,iters)
-% ylabel('Error')
+% ylabel('Iterations/Time Step')
 % xlabel('Time [sec]')
 % grid
-% 
 
-% Control Mode
+% Iterations
+figure;
+plot(normKs)
+hold on
+plot(normdds, 'r')
+plot(1000*(normKs./normdds),'g')
+ylabel('part of jacs')
+xlabel('Time [sec]')
+grid
+
+
+
+% Control Mode and secant stiffness
 figure;
 plot(controlModes)
-ylabel('Control Modes')
+hold on
+% plot(ks,'r')
+% plot(10e2*errorNorms,'k')
+plot(100*(normKs./normdds),'g')
+ylabel('[-]')
 xlabel('Time [sec]')
 grid
 
 
 % experimental element trial displacement
-figure;
-eD1 = load('ElementDisp1.txt');
-plot(eD1,ANALYSIS.plotFlag)
-ylabel('trialDisp')
-xlabel('Step [-]')
-grid
-
-% % experimental element trial displacement
-figure;
-eF1 = load('ElementForce1.txt');
-plot(eF1,ANALYSIS.plotFlag)
-ylabel('trialForce')
-xlabel('Step [-]')
-grid
-
-% experimental element trial displacement
 % figure;
-% plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+% eD1 = load('ElementDisp1.txt');
+% plot(eD1,ANALYSIS.plotFlag)
+% ylabel('trialDisp')
+% xlabel('Step [-]')
+% grid
+% 
+% % % experimental element trial displacement
+% figure;
+% eF1 = load('ElementForce1.txt');
+% plot(eF1,ANALYSIS.plotFlag)
+% ylabel('trialForce')
+% xlabel('Step [-]')
+% grid
+% 
+% % experimental element trial displacement
+% % figure;
+% % plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+% % ylabel('trialForce')
+% % xlabel('trialDisp')
+% % grid
+% 
+% % experimental element trial displacement
+% figure;
+% plot(eD1(2:end),eF1(1:end-1),ANALYSIS.plotFlag)
 % ylabel('trialForce')
 % xlabel('trialDisp')
 % grid
-
-% experimental element trial displacement
-figure;
-plot(eD1(2:end),eF1(1:end-1),ANALYSIS.plotFlag)
-ylabel('trialForce')
-xlabel('trialDisp')
-grid
 
 % 
 % % plot all experimental force
@@ -244,3 +275,7 @@ grid
 rmpath([pwd '/Control schemes']);
 rmpath([pwd '/Switch schemes']);
 rmpath([pwd '/Material models']);
+
+% rmpath([pwd '\Control schemes']);
+% rmpath([pwd '\Switch schemes']);
+% rmpath([pwd '\Material models']);

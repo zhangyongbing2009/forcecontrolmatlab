@@ -29,15 +29,15 @@ ndf = size(M,1);
 
 % element 1 properties
 %Element{1} = 'Elastic';
-%Element{1} = 'BiLinearElastic';
+Element{1} = 'BiLinearElastic';
 % Element{1} = 'BiLinearHysteretic';
 %Element{1} = 'Hardening';
 %Element{1} = 'NLElastic';
-Element{1} = 'Experimental';
+% Element{1} = 'Experimental';
 MatData(1).tag    = 1;
 MatData(1).E      = 2.8;
 MatData(1).fy     = 1.5;      % yield stress
-MatData(1).b      = 1000;     % hardening ratio
+MatData(1).b      = 0.01;     % hardening ratio
 MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
 MatData(1).Kiso   = 0.0;
 MatData(1).ipAddr = '127.0.0.1';
@@ -106,7 +106,7 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 100;% length(ag);
+npts = 400;% length(ag);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

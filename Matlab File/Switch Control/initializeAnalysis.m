@@ -15,23 +15,31 @@ a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
 % Analysis Method
-schemeDisp = 'DM_NLDynamicNR';
-% schemeDisp = 'DM_NLDynamicNRLimit';
+% schemeDisp = 'DM_NLDynamicNR';
+schemeDisp = 'DM_NLDynamicNRLimit';
 % schemeDisp = 'DM_NLDynamicNRwFixIter';
-schemeForce = 'FM_NLDynamicNR';
-% schemeForce = 'FM_NLDynamicNRLimit';
+% schemeForce = 'FM_NLDynamicNR';
+schemeForce = 'FM_NLDynamicNRLimit';
 % schemeForce = 'FM_NLDynamicNRwFixIter';
 
 % Switch Method
-schemeSwitch = 'simpleYield';
+% schemeSwitch = 'simpleYield';
+schemeSwitch = 'secantUpdate';
+
+% Switch Parameters
+Kd = 1.1;
+Kf = 1.5;
+Rd = 1.2;
+Rf = 1.4;
+
 
 % plotFlag = 'r-';
 plotFlag = 'b-';
 
 % max iterations and tol
-maxIter = 10;
-tol = 1.0E-6;
-incrLimit = 1.0e-1;
+maxIter = 500;
+tol = 1.0E-3;
+incrLimit = 5E-2;
 
 % Store analysis variables
 analysis.beta  = beta;
@@ -43,6 +51,12 @@ analysis.a1 = a1;
 analysis.a2 = a2;
 analysis.a3 = a3;
 analysis.a4 = a4;
+
+% Store switching parameters
+analysis.Kd  = Kd;
+analysis.Kf = Kf;
+analysis.Rd = Rd;
+analysis.Rf = Rf;
 
 % max iterations and tol
 analysis.schemeDisp = schemeDisp;

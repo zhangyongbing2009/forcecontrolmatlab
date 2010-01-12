@@ -46,7 +46,7 @@ for iter=1:maxIter
     % get displacements and flexibilities from elements
     for j=1:numElem
         u(j,1) = feval(Element{j},'getStrain',MatData(j));
-        f(j,j) = feval(Element{j},'getTangent',MatData(j));
+        f(j,j) = feval(Element{j},'getTangentF',MatData(j));
     end
 
     % update response quantities
@@ -68,8 +68,8 @@ for iter=1:maxIter
 
     % substeps
     x = iter/maxIter;
-    scaleddeltaQ = x*(prTrial + deltaQ) - (x-1)*pr - prTrial;
-    %       scaleddeltaQ = deltaQ/(maxIter-iter+1);
+    % scaleddeltaQ = x*(prTrial + deltaQ) - (x-1)*pr - prTrial;
+    scaleddeltaQ = deltaQ/(maxIter-iter+1);
 
     % update variables
     prTrial = prTrial + scaleddeltaQ;
@@ -83,7 +83,7 @@ end
 % get displacements and flexibilities from elements
 for j=1:numElem
     u(j,1) = feval(Element{j},'getStrain',MatData(j));
-    f(j,j) = feval(Element{j},'getTangent',MatData(j));
+    f(j,j) = feval(Element{j},'getTangentF',MatData(j));
 end
 
 % update response quantities
@@ -102,6 +102,8 @@ state.Udotdot = UdotdotTrial;
 state.pr = pr;
 state.u = u;
 state.Pr = Pr;
+state.iter = maxIter;
+state.errorNorm = errorNorm;
 model.f = f;
 model.K = MODEL.K;
 analysis = ANALYSIS;
