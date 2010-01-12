@@ -69,16 +69,14 @@ switch action
       varargout = {stressT(:,tag)};
    % ======================================================================
    case 'getStrain'
-%       strainT = 1/E*stressT(:,tag);
-      strainO = 1/E*stressT(:,tag);
-      fprintf(FIDd,'%f\n',strainO);
-      varargout = {strainO,stressT(:,tag)};
+      strainT(:,tag) = 1/E*stressT(:,tag);
+      fprintf(FIDd,'%f\n',strainT(:,tag));
+      varargout = {strainT(:,tag),stressT(:,tag)};
    % ======================================================================
    case 'getStress'
-%       stressT = E*strainT(:,tag);
-      stressO = E*strainT(:,tag);
-      fprintf(FIDf,'%f\n',stressO);
-      varargout = {stressO};
+      stressT(:,tag) = E*strainT(:,tag);
+      fprintf(FIDf,'%f\n',stressT(:,tag));
+      varargout = {stressT(:,tag)};
    % ======================================================================
    case 'getTangentK'
       varargout = {E};

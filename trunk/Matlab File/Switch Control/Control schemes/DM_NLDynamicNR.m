@@ -79,6 +79,8 @@ state.Udotdot = Udotdot;
 state.pr = pr;
 state.u = u;
 state.Pr = Pr;
+state.iter = iter;
+state.errorNorm = errorNorm;
 model.K = K;
 analysis = ANALYSIS;
 

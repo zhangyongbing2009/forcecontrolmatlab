@@ -58,8 +58,8 @@ switch action
    case 'initialize'
       stressT(:,tag) = zeros(ndf,1);
       strainT(:,tag) = zeros(ndf,1);
-      stressC(tag) = zeros(ndf,1);
-      strainC(tag) = zeros(ndf,1);
+      stressC(:,tag) = zeros(ndf,1);
+      strainC(:,tag) = zeros(ndf,1);
       
       FIDd = fopen(['ElementDisp',num2str(tag),'.txt'],'w+');
       FIDf = fopen(['ElementForce',num2str(tag),'.txt'],'w+');
@@ -87,28 +87,28 @@ switch action
    case 'getStrain'
        % calculate the strain
        if stressT(:,tag) > Fy1
-           strainT = ey1+(stressT(:,tag)-Fy1)/b/E;
+           strainT(:,tag) = ey1+(stressT(:,tag)-Fy1)/b/E;
        elseif stressT(:,tag) < Fy2
-           strainT = ey2+(stressT(:,tag)-Fy2)/b/E;
+           strainT(:,tag) = ey2+(stressT(:,tag)-Fy2)/b/E;
        else
-           strainT = (stressT(:,tag)-B0)/E;
+           strainT(:,tag) = (stressT(:,tag)-B0)/E;
        end
        
-       fprintf(FIDd,'%f\n',strainT);
-       varargout = {strainT};
+       fprintf(FIDd,'%f\n',strainT(:,tag));
+       varargout = {strainT(:,tag)};
    % ======================================================================
    case 'getStress'
        % calculate the stress
        if strainT(:,tag) > ey1
-           stressT = Fy1+(strainT(:,tag)-ey1)*b*E;
+           stressT(:,tag) = Fy1+(strainT(:,tag)-ey1)*b*E;
        elseif strainT(:,tag) < ey2
-           stressT = Fy2+(strainT(:,tag)-ey2)*b*E;
+           stressT(:,tag) = Fy2+(strainT(:,tag)-ey2)*b*E;
        else
-           stressT = strainT(:,tag)*E+B0;
+           stressT(:,tag) = strainT(:,tag)*E+B0;
        end
        
-       fprintf(FIDf,'%f\n',stressT);
-       varargout = {stressT};
+       fprintf(FIDf,'%f\n',stressT(:,tag));
+       varargout = {stressT(:,tag)};
    % ======================================================================
    case 'getTangentK'
       if strainT(:,tag) >= ey1 || strainT(:,tag) <= ey2
@@ -135,8 +135,8 @@ switch action
       varargout = {1/E};
    % ======================================================================
    case 'commitState'
-      stressC(tag) = stressT(tag);
-      strainC(tag) = strainT(tag);
+      stressC(:,tag) = stressT(:,tag);
+      strainC(:,tag) = strainT(:,tag);
       
       varargout = {0};      
    % ======================================================================

@@ -38,15 +38,15 @@ nos = size(Bx,2);
 
 % element 1 properties
 %Element{1} = 'ElasticForce';
-%Element{1} = 'BiLinearElasticForce';
+% Element{1} = 'BiLinearElasticForce';
 Element{1} = 'BiLinearHystereticForce';
 %Element{1} = 'HardeningForce';
 %Element{1} = 'NLElasticForce';
-%Element{1} = 'ExperimentalForce';
+% Element{1} = 'ExperimentalForce';
 MatData(1).tag    = 1;
 MatData(1).E      = 2.8;
 MatData(1).fy     = 1.5;      % yield stress
-MatData(1).b      = 0.5;     % hardening ratio
+MatData(1).b      = 10;     % hardening ratio
 MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
 MatData(1).Kiso   = 0.0;
 MatData(1).ipAddr = '127.0.0.1';
@@ -100,7 +100,7 @@ C = alphaM*M;
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = pwd;
+GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
 SF = 1;
 g = 386.1;
@@ -115,7 +115,7 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 100; %length(ag);
+npts = 400; %length(ag);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,7 +133,7 @@ a3 = -1.0/(beta*deltaT);
 a4 = 1.0 - 0.5/beta;
 
 % max iterations and tol
-maxIter = 1e4;
+maxIter = 10;
 tol = 1.0E-6;
 
 % initialize global response variables
@@ -171,7 +171,7 @@ for i=1:npts-1
       % get displacements and flexibilities from elements
       for j=1:numElem
          u(j,i+1) = feval(Element{j},'getStrain',MatData(j));
-%          f(j,j)  = feval(Element{j},'getTangent',MatData(j));
+         f(j,j)  = feval(Element{j},'getTangent',MatData(j));
       end
       
       uall(:,count) = u(:,i+1);
