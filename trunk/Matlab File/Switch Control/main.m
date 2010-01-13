@@ -5,7 +5,7 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all; close all;  clc;
+clear all; %close all;  clc;
 
 % add the subroutine path to the folder
 % addpath([pwd '\Material models']);
@@ -95,7 +95,7 @@ for i=1:npts-1
    pr(:,i+1) = state.pr;
    u(:,i+1) = state.u;
    controlModes(:,i+1) = state.controlMode;
-   ks(:,i+1) = state.k;
+%    ks(:,i+1) = state.k;
    iters(:,i+1) = state.iter;
    errorNorms(:,i+1) = state.errorNorm;
    normKs(:,i+1) = state.normK;
@@ -215,11 +215,11 @@ grid
 
 % Control Mode and secant stiffness
 figure;
-plot(controlModes)
+plot(t,controlModes)
 hold on
 % plot(ks,'r')
 % plot(10e2*errorNorms,'k')
-plot(100*(normKs./normdds),'g')
+plot(t,100*(normKs./normdds),'g')
 ylabel('[-]')
 xlabel('Time [sec]')
 grid

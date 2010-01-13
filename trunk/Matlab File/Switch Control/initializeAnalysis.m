@@ -18,13 +18,15 @@ a4 = 1.0 - 0.5/beta;
 % schemeDisp = 'DM_NLDynamicNR';
 schemeDisp = 'DM_NLDynamicNRLimit';
 % schemeDisp = 'DM_NLDynamicNRwFixIter';
+% schemeDisp = 'DM_NLDynamicNRLimitIncr';
 % schemeForce = 'FM_NLDynamicNR';
 schemeForce = 'FM_NLDynamicNRLimit';
 % schemeForce = 'FM_NLDynamicNRwFixIter';
+% schemeForce = 'FM_NLDynamicNRLimitIncr';
 
 % Switch Method
-% schemeSwitch = 'simpleYield';
-schemeSwitch = 'secantUpdate';
+schemeSwitch = 'simpleYield';
+% schemeSwitch = 'secantUpdate';
 
 % Switch Parameters
 Kd = 1.1;
