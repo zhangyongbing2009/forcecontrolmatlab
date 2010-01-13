@@ -5,7 +5,9 @@ function varargout = Elastic(action,MatData,trialValue)
 % action  : switch with following possible values
 %              'initialize'         initialize internal variables
 %              'setTrialStrain'     set the trial strain
+%              'setIncrTrialStrain' set the incr trial strain
 %              'setTrialStress'     set the trial stress
+%              'setIncrTrialStress' set the incr trial stress
 %              'getTrialStrain'     get the current strain that was set
 %              'getTrialStress'     get the current stress that was set
 %              'getStrain'          get the current strain that was calc
@@ -47,6 +49,8 @@ switch action
    case 'initialize'
       strainT(:,tag) = zeros(ndf,1);
       stressT(:,tag) = zeros(ndf,1);
+      strainC(:,tag) = zeros(ndf,1);
+      stressC(:,tag) = zeros(ndf,1);
       
       FIDd = fopen(['ElementDisp',num2str(tag),'.txt'],'w+');
       FIDf = fopen(['ElementForce',num2str(tag),'.txt'],'w+');
