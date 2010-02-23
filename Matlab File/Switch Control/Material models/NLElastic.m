@@ -93,11 +93,23 @@ switch action
       
       varargout = {strainT};
    % ======================================================================
+   case 'getIncrStrain'
+      strainT(:,tag) = -sign(stressT(:,tag))*log(1-sign(stressT(:,tag))*(stressT(:,tag)/amp));     
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
+      
+      varargout = {strainT(:,tag)-strainC(:,tag)};
+   % ======================================================================
    case 'getStress'
       stressT(:,tag) = amp*sign(strainT(:,tag))*(1-exp(-sign(strainT(:,tag))*strainT(:,tag)));
       fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {stressT};
+   % ======================================================================
+   case 'getIncrStress'
+      stressT(:,tag) = amp*sign(strainT(:,tag))*(1-exp(-sign(strainT(:,tag))*strainT(:,tag)));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
+      
+      varargout = {stressT(:,tag)-stressC(:,tag)};
    % ======================================================================
    case 'getTangentK'
       tangentK = amp*exp(-sign(strainT(:,tag))*strainT(:,tag));

@@ -70,25 +70,25 @@ switch action
    % ======================================================================
    case 'setTrialStrain'
       strainT(:,tag) = trialValue;
-      fprintf(FIDd,'%f\n',strainT(:,tag));
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStrain'
       strainT(:,tag) = strainC(:,tag) + trialValue;
-      fprintf(FIDd,'%f\n',strainT(:,tag));
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setTrialStress'
       stressT(:,tag) = trialValue;
-      fprintf(FIDf,'%f\n',stressT(:,tag));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStress'
       stressT(:,tag) = stressC(:,tag) + trialValue;
-      fprintf(FIDf,'%f\n',stressT(:,tag));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
@@ -108,8 +108,21 @@ switch action
            strainT(:,tag) = (stressT(:,tag)-B0)/E;
        end
        
-       fprintf(FIDd,'%f\n',strainT(:,tag));
+       fprintf(FIDd,'%12.8f\n',strainT(:,tag));
        varargout = {strainT(:,tag)};
+   % ======================================================================
+   case 'getIncrStrain'
+       % calculate the strain
+       if stressT(:,tag) > Fy1
+           strainT(:,tag) = ey1+(stressT(:,tag)-Fy1)/b/E;
+       elseif stressT(:,tag) < Fy2
+           strainT(:,tag) = ey2+(stressT(:,tag)-Fy2)/b/E;
+       else
+           strainT(:,tag) = (stressT(:,tag)-B0)/E;
+       end
+       
+       fprintf(FIDd,'%12.8f\n',strainT(:,tag));
+       varargout = {strainT(:,tag)-strainC(:,tag)};
    % ======================================================================
    case 'getStress'
        % calculate the stress
@@ -121,8 +134,21 @@ switch action
            stressT(:,tag) = strainT(:,tag)*E+B0;
        end
        
-       fprintf(FIDf,'%f\n',stressT(:,tag));
+       fprintf(FIDf,'%12.8f\n',stressT(:,tag));
        varargout = {stressT(:,tag)};
+   % ======================================================================
+   case 'getIncrStress'
+       % calculate the stress
+       if strainT(:,tag) > ey1
+           stressT(:,tag) = Fy1+(strainT(:,tag)-ey1)*b*E;
+       elseif strainT(:,tag) < ey2
+           stressT(:,tag) = Fy2+(strainT(:,tag)-ey2)*b*E;
+       else
+           stressT(:,tag) = strainT(:,tag)*E+B0;
+       end
+       
+       fprintf(FIDf,'%12.8f\n',stressT(:,tag));
+       varargout = {stressT(:,tag)-stressC(:,tag)};
    % ======================================================================
    case 'getTangentK'
       if strainT(:,tag) >= ey1 || strainT(:,tag) <= ey2

@@ -28,15 +28,15 @@ A = B';
 
 % element 1 properties
 % Element{1} = 'Elastic';
-% Element{1} = 'BiLinearElastic';
+Element{1} = 'BiLinearElastic';
 % Element{1} = 'BiLinearHysteretic';
 % Element{1} = 'Hardening';
-Element{1} = 'NLElastic';
+% Element{1} = 'NLElastic';
 % Element{1} = 'Experimental';
 MatData(1).tag    = 1;
-MatData(1).E      = 2.8;
+MatData(1).E      = 2.6;
 MatData(1).fy     = 1.5;      % yield stress
-MatData(1).b      = 0.01;     % hardening ratio
+MatData(1).b      = 100.0;     % hardening ratio
 MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
 MatData(1).Kiso   = 0.0;
 MatData(1).amp   = 2;
@@ -55,7 +55,6 @@ MatData(3).E   = 5.6;
 
 % element 4 properties
 Element{4} = 'Elastic';
-Element{4} = 'ElasticForce';
 MatData(4).tag = 4;
 MatData(4).E   = 10;
 
@@ -103,3 +102,4 @@ model.MatData = MatData;
 model.numElem = numElem;
 model.ndf = ndf;
 model.nos = nos;
+model.T = T;

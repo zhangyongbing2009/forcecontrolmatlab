@@ -5,28 +5,31 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all; close all;  clc;
+clear all;  close all;  clc;
 
 % add the subroutine path to the folder
-% addpath([pwd '\Material models']);
-% addpath([pwd '\Switch schemes']);
-% addpath([pwd '\Control schemes']);
-addpath([pwd '/Material models']);
-addpath([pwd '/Switch schemes']);
-addpath([pwd '/Control schemes']);
+addpath([pwd '\Material models']);
+addpath([pwd '\Switch schemes']);
+addpath([pwd '\Control schemes']);
+% addpath([pwd '/Material models']);
+% addpath([pwd '/Switch schemes']);
+% addpath([pwd '/Control schemes']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-MODEL = createModel();
+% 3 Element Model
+% MODEL = createModel();
+% 4 Element Model
+MODEL = createModel4();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
+GMDir = 'D:\Switch Control\Ground motions\';
 dt = 0.02;
-SF = 1;
+SF = 1.0;
 g = 386.1;
 ag0 = load(fullfile(GMDir,'elcentro.txt'));
 t0 = 0:length(ag0)-1;
@@ -39,7 +42,7 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 500;% length(ag);
+npts = 350;% length(ag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize Analysis
@@ -54,6 +57,7 @@ Pr = zeros(MODEL.ndf,npts);
 errorNorms = zeros(1,npts);
 iters = zeros(1,npts);
 controlModes = zeros(1,npts);
+switchFlags = zeros(1,npts);
 ks = zeros(1,npts);
 normKs = zeros(1,npts);
 normdds = zeros(1,npts);
@@ -66,10 +70,13 @@ prall = zeros(MODEL.numElem,npts);
 
 STATE.prPrev = zeros(MODEL.numElem,1);
 STATE.uPrev = zeros(MODEL.numElem,1);
+STATE.offsetu = zeros(MODEL.numElem,1);
+STATE.offsetpr = zeros(MODEL.numElem,1);
 
 % calculations for each time step, i
 for i=1:npts-1
-   
+   clc
+   i
    % get new response quantities
    STATE.U = U(:,i);
    STATE.Udot = Udot(:,i);
@@ -79,6 +86,7 @@ for i=1:npts-1
    STATE.u = u(:,i);
    STATE.i = i;
    STATE.controlMode = controlModes(:,i);
+   STATE.switchFlag = switchFlags(:,i);
    
    % get applied loads
    STATE.Ptp1 = -MODEL.M*b*ag(i+1);
@@ -95,12 +103,15 @@ for i=1:npts-1
    pr(:,i+1) = state.pr;
    u(:,i+1) = state.u;
    controlModes(:,i+1) = state.controlMode;
+%    switchFlags(:,i) = state.switchFlag;
+%    STATE.offsetu = state.offsetu;
+%    STATE.offsetpr = state.offsetpr;
 %    ks(:,i+1) = state.k;
    iters(:,i+1) = state.iter;
-   errorNorms(:,i+1) = state.errorNorm;
-   normKs(:,i+1) = state.normK;
-   normdds(:,i+1) = state.normdd;
-
+   errorNorms(:,i) = state.errorNorm;
+%    normKs(:,i+1) = state.normK;
+%   normdds(:,i+1) = state.normdd;
+   
 end
 
 % disconnect from experimental sites
@@ -119,14 +130,14 @@ fclose('all');
 t = t(1:npts);
 
 % % plot the element hysteresis
-% figure;
-% for j=1:MODEL.numElem
-%     subplot(MODEL.numElem,1,j);
-%     plot(u(j,:),pr(j,:),ANALYSIS.plotFlag);
-%     xlabel(['u' num2str(j)]);
-%     ylabel(['pr' num2str(j)]);
-%     grid
-% end
+figure;
+for j=1:MODEL.numElem
+    subplot(MODEL.numElem,1,j);
+    plot(u(j,:),pr(j,:),ANALYSIS.plotFlag);
+    xlabel(['u' num2str(j)]);
+    ylabel(['pr' num2str(j)]);
+    grid
+end
 
 % plot the element hysteresis
 % figure;
@@ -147,36 +158,36 @@ for j=1:MODEL.numElem
     ylabel(['pr' num2str(j)]);
     grid
 end
- 
-% % plot the element displacement history
-% figure;
-% for j=1:MODEL.numElem
-%     subplot(MODEL.numElem,1,j);
-%     plot(t,u(j,:),ANALYSIS.plotFlag);
-%     xlabel('Time [sec]')
-%     ylabel(['u' num2str(j)]);
-%     grid
-% end
-% 
-% % plot the Node response history
-% figure;
-% for j=1:MODEL.ndf
-%     subplot(3,MODEL.ndf,j);
-%     plot(t,U(j,:),ANALYSIS.plotFlag);
-%     xlabel('Time [sec]')
-%     ylabel(['U' num2str(j)]);
-%     grid    
-%     subplot(3,MODEL.ndf,j+MODEL.ndf);
-%     plot(t,Udot(j,:),ANALYSIS.plotFlag);
-%     xlabel('Time [sec]')
-%     ylabel(['Udot' num2str(j)]);
-%     grid
-%     subplot(3,MODEL.ndf,j+2*MODEL.ndf);
-%     plot(t,Udot(j,:),ANALYSIS.plotFlag);
-%     xlabel('Time [sec]')
-%     ylabel(['Udot' num2str(j)]);
-%     grid
-% end
+
+% plot the element displacement history
+figure;
+for j=1:MODEL.numElem
+    subplot(MODEL.numElem,1,j);
+    plot(t,u(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['u' num2str(j)]);
+    grid
+end
+
+% plot the Node response history
+figure;
+for j=1:MODEL.ndf
+    subplot(3,MODEL.ndf,j);
+    plot(t,U(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['U' num2str(j)]);
+    grid    
+    subplot(3,MODEL.ndf,j+MODEL.ndf);
+    plot(t,Udot(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['Udot' num2str(j)]);
+    grid
+    subplot(3,MODEL.ndf,j+2*MODEL.ndf);
+    plot(t,Udot(j,:),ANALYSIS.plotFlag);
+    xlabel('Time [sec]')
+    ylabel(['Udot' num2str(j)]);
+    grid
+end
 
 % figure;
 % for j=1:ndf
@@ -199,30 +210,30 @@ figure;
 plot(t,iters,ANALYSIS.plotFlag)
 ylabel('Iterations/Time Step')
 xlabel('Time [sec]')
-grid
+grid on
 
 % Iterations
-figure;
-plot(normKs)
-hold on
-plot(normdds, 'r')
-plot(1000*(normKs./normdds),'g')
-ylabel('part of jacs')
-xlabel('Time [sec]')
-grid
-
-
+% figure;
+% plot(normKs)
+% hold on
+% plot(normdds, 'r')
+% plot(1000*(normKs./normdds),'g')
+% ylabel('part of jacs')
+% xlabel('Time [sec]')
+% grid
 
 % Control Mode and secant stiffness
 figure;
 plot(t,controlModes)
 hold on
+plot(t,switchFlags,'.k')
+grid on
 plot(t,ks,'r')
-% plot(10e2*errorNorms,'k')
-% plot(t,100*(normKs./normdds),'g')
-ylabel('[-]')
-xlabel('Time [sec]')
-grid
+% % plot(10e2*errorNorms,'k')
+% % plot(t,100*(normKs./normdds),'g')
+% ylabel('[-]')
+% xlabel('Time [sec]')
+% grid
 
 
 % experimental element trial displacement
@@ -233,7 +244,7 @@ ylabel('trialDisp')
 xlabel('Step [-]')
 grid
 
-% experimental element trial force
+% % experimental element trial force
 figure;
 eF1 = load('ElementForce1.txt');
 plot(eF1,ANALYSIS.plotFlag)
@@ -241,14 +252,21 @@ ylabel('trialForce')
 xlabel('Step [-]')
 grid
 
-% experimental element trial hysteresis
+% experimental element hysteresis - disp control
 figure;
-plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+plot(eD1,eF1,ANALYSIS.plotFlag)
 ylabel('trialForce')
 xlabel('trialDisp')
 grid
 
-% % experimental element trial displacement
+% % experimental element hysteresis - disp control
+% figure;
+% plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+% ylabel('trialForce')
+% xlabel('trialDisp')
+% grid
+% 
+% % experimental element hysteresis - force control
 % figure;
 % plot(eD1(2:end),eF1(1:end-1),ANALYSIS.plotFlag)
 % ylabel('trialForce')
@@ -264,18 +282,18 @@ grid
 % grid
 
 
-% % ground motion
-% figure;
-% plot(t,ag(1:length(t)),ANALYSIS.plotFlag)
-% ylabel('Ag')
-% xlabel('Time [sec]')
-% grid
+% ground motion
+figure;
+plot(t,ag(1:length(t)),ANALYSIS.plotFlag)
+ylabel('Ag')
+xlabel('Time [sec]')
+grid
 
 % remove the subroutine path to the folder
-rmpath([pwd '/Control schemes']);
-rmpath([pwd '/Switch schemes']);
-rmpath([pwd '/Material models']);
+% rmpath([pwd '/Control schemes']);
+% rmpath([pwd '/Switch schemes']);
+% rmpath([pwd '/Material models']);
 
-% rmpath([pwd '\Control schemes']);
-% rmpath([pwd '\Switch schemes']);
-% rmpath([pwd '\Material models']);
+rmpath([pwd '\Control schemes']);
+rmpath([pwd '\Switch schemes']);
+rmpath([pwd '\Material models']);

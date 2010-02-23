@@ -10,13 +10,28 @@ function [model analysis state] = simpleYield(MODEL, ANALYSIS, STATE)
 % Created: 10/21/2009
 % Last Update: 10/28/09
 
-threshold = MODEL.MatData(1).fy;
+fy = MODEL.MatData(1).fy;
+Rd = .95*fy;
+Rf = .9*fy;
 p  = STATE.pr(1,1); 
+controlMode = STATE.controlMode;
+controlModeNew = controlMode;
 
-if (abs(p) <= threshold) 
-    [model analysis state] = feval(ANALYSIS.schemeForce, MODEL, ANALYSIS, STATE);
-    state.controlMode = 1;
-else
-    [model analysis state] = feval(ANALYSIS.schemeDisp, MODEL, ANALYSIS, STATE);
-    state.controlMode = 0;
+if (controlMode == 0)
+   if (abs(p) < Rf) 
+      controlModeNew = 1;
+   end
+elseif (controlMode == 1)
+   if (abs(p) > Rd) 
+      controlModeNew = 0;
+   end
 end
+   
+if (controlModeNew == 0)
+   [model analysis state] = feval(ANALYSIS.schemeDisp, MODEL, ANALYSIS, STATE);
+elseif (controlModeNew ==1)
+   [model analysis state] = feval(ANALYSIS.schemeForce, MODEL, ANALYSIS, STATE);
+end
+
+state.controlMode = controlModeNew;
+state.k = 1;
