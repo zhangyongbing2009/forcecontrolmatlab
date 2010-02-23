@@ -5,7 +5,7 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all; %close all;  clc;
+clear all; close all;  clc;
 
 % add the subroutine path to the folder
 % addpath([pwd '\Material models']);
@@ -39,7 +39,7 @@ deltaT = 0.02;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 400;% length(ag);
+npts = 500;% length(ag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize Analysis
@@ -194,12 +194,12 @@ end
 % xlabel('Time [sec]')
 % grid
 
-% % Iterations
-% figure;
-% plot(t,iters)
-% ylabel('Iterations/Time Step')
-% xlabel('Time [sec]')
-% grid
+% Iterations
+figure;
+plot(t,iters,ANALYSIS.plotFlag)
+ylabel('Iterations/Time Step')
+xlabel('Time [sec]')
+grid
 
 % Iterations
 figure;
@@ -217,37 +217,37 @@ grid
 figure;
 plot(t,controlModes)
 hold on
-% plot(ks,'r')
+plot(t,ks,'r')
 % plot(10e2*errorNorms,'k')
-plot(t,100*(normKs./normdds),'g')
+% plot(t,100*(normKs./normdds),'g')
 ylabel('[-]')
 xlabel('Time [sec]')
 grid
 
 
 % experimental element trial displacement
-% figure;
-% eD1 = load('ElementDisp1.txt');
-% plot(eD1,ANALYSIS.plotFlag)
-% ylabel('trialDisp')
-% xlabel('Step [-]')
-% grid
-% 
-% % % experimental element trial displacement
-% figure;
-% eF1 = load('ElementForce1.txt');
-% plot(eF1,ANALYSIS.plotFlag)
-% ylabel('trialForce')
-% xlabel('Step [-]')
-% grid
-% 
-% % experimental element trial displacement
-% % figure;
-% % plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
-% % ylabel('trialForce')
-% % xlabel('trialDisp')
-% % grid
-% 
+figure;
+eD1 = load('ElementDisp1.txt');
+plot(eD1,ANALYSIS.plotFlag)
+ylabel('trialDisp')
+xlabel('Step [-]')
+grid
+
+% experimental element trial force
+figure;
+eF1 = load('ElementForce1.txt');
+plot(eF1,ANALYSIS.plotFlag)
+ylabel('trialForce')
+xlabel('Step [-]')
+grid
+
+% experimental element trial hysteresis
+figure;
+plot(eD1(1:end-1),eF1(2:end),ANALYSIS.plotFlag)
+ylabel('trialForce')
+xlabel('trialDisp')
+grid
+
 % % experimental element trial displacement
 % figure;
 % plot(eD1(2:end),eF1(1:end-1),ANALYSIS.plotFlag)

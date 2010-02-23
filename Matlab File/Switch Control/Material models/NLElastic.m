@@ -59,25 +59,25 @@ switch action
    % ======================================================================
    case 'setTrialStrain'
       strainT(:,tag) = trialValue;
-      fprintf(FIDd,'%f\n',trialValue);
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStrain'
       strainT(:,tag) = strainC(:,tag) + trialValue;
-      fprintf(FIDd,'%f\n',trialValue);
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setTrialStress'
       stressT(:,tag) = trialValue;
-      fprintf(FIDf,'%f\n',trialValue);
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStress'
       stressT(:,tag) = stressC(:,tag) + trialValue;
-      fprintf(FIDf,'%f\n',trialValue);
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
@@ -89,13 +89,13 @@ switch action
    % ======================================================================
    case 'getStrain'
       strainT(:,tag) = -sign(stressT(:,tag))*log(1-sign(stressT(:,tag))*(stressT(:,tag)/amp));     
-      fprintf(FIDd,'%f\n',strainT(:,tag));
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {strainT};
    % ======================================================================
    case 'getStress'
       stressT(:,tag) = amp*sign(strainT(:,tag))*(1-exp(-sign(strainT(:,tag))*strainT(:,tag)));
-      fprintf(FIDf,'%f\n',stressT(:,tag));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {stressT};
    % ======================================================================
