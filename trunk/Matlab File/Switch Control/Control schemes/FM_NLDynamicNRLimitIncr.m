@@ -1,4 +1,4 @@
-function [model analysis state] = FM_NLDynamicNRLimit(MODEL, ANALYSIS, STATE)
+function [model analysis state] = FM_NLDynamicNRLimitIncr(MODEL, ANALYSIS, STATE)
 % Nonlinear dynamic analysis using force method
 %
 % Written by T.Y. Yang and Andreas Schellenberg 09/08/2009
@@ -35,7 +35,7 @@ Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
 pr = STATE.pr;
-prIncr = zeros(MODEL.numElem,1);
+offsetpr = STATE.offsetpr;
 i = STATE.i;
 
 % assemble the augmented matrices
@@ -46,8 +46,16 @@ Pb = [Ptp1; zeros(nos,1)];
 % Newton-Raphson algorithm
 iter = 0;
 errorNorm = 1.0;
+scaleddeltaQ = zeros(numElem,1);
 while (errorNorm >= tol && iter <= maxIter)
-
+    % update response quantity
+    pr = pr + scaleddeltaQ;
+    % find the offset control force
+    prCtrl = pr - offsetpr;
+    % set trial forces in elements
+    for j=1:numElem
+        feval(Element{j},'setIncrTrialStress',MatData(j),prCtrl(j,:));
+    end
     % get displacements and flexibilities from elements
     for j=1:numElem
         u(j,1) = feval(Element{j},'getStrain',MatData(j));
@@ -63,13 +71,11 @@ while (errorNorm >= tol && iter <= maxIter)
     Pr = B*pr;
     Prb = [Pr; Bx'*u];
     Sb = [B; Bx'*f];
-    normK = norm(Sb);
-    
+
     % get rhs and jacobian
     R = Mb*UdotdotTrial + Cb*UdotTrial + Prb - Pb;
     dRdQ = (c3*Mb + c2*Cb)*Bi'*f + Sb;
-    normdd = norm((c3*Mb + c2*Cb)*Bi'*f);
-    
+
     % solve for force increments
     deltaQ = dRdQ\(-R);
 
@@ -79,15 +85,6 @@ while (errorNorm >= tol && iter <= maxIter)
         scaleddeltaQ = scale*deltaQ;
     else
         scaleddeltaQ = deltaQ;
-    end
-
-    % update response quantity
-    prIncr = prIncr + scaleddeltaQ;
-    pr = pr + scaleddeltaQ;
-    
-    % set trial forces in elements
-    for j=1:numElem
-        feval(Element{j},'setIncrTrialStress',MatData(j),prIncr(j,:));
     end
 
     % update the error norm and iteration number
@@ -104,8 +101,6 @@ state.u = u;
 state.Pr = Pr;
 state.iter = iter;
 state.errorNorm = errorNorm;
-state.normK = normK;
-state.normdd = normdd;
 model.f = f;
 model.K = MODEL.K;
 analysis = ANALYSIS;
@@ -114,7 +109,7 @@ analysis = ANALYSIS;
 if (iter <= maxIter || errorNorm <= tol)
     % commit the elements
     for j=1:numElem
-        feval(Element{j},'commitState',MatData(j));
+%         feval(Element{j},'commitState',MatData(j));
     end
 else
     error(['failed to converge in Newton-Raphson algorithm: Step = ',num2str(i),...

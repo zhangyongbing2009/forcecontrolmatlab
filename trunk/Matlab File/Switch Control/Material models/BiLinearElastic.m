@@ -62,25 +62,25 @@ switch action
    % ======================================================================
    case 'setTrialStrain'
       strainT(:,tag) = trialValue;
-      fprintf(FIDd,'%f\n',strainT(:,tag));
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStrain'
       strainT(:,tag) = strainC(:,tag) + trialValue;
-      fprintf(FIDd,'%f\n',strainT(:,tag));
+      fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setTrialStress'
       stressT(:,tag) = trialValue;
-      fprintf(FIDf,'%f\n',stressT(:,tag));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
    case 'setIncrTrialStress'
       stressT(:,tag) = stressC(:,tag) + trialValue;
-      fprintf(FIDf,'%f\n',stressT(:,tag));
+      fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
@@ -97,8 +97,18 @@ switch action
          strainT = stressT(:,tag)/E;
       end
       
-      fprintf(FIDd,'%f\n',strainT);
-      varargout = {strainT};
+      fprintf(FIDd,'%12.8f\n',strainT);
+      varargout = {strainT(:,tag)};
+   % ======================================================================
+   case 'getIncrStrain'
+      if abs(stressT(:,tag)) > fy
+         strainT = sign(stressT(:,tag))*(fy/E+(abs(stressT(:,tag))-fy)/(E*b));
+      else
+         strainT = stressT(:,tag)/E;
+      end
+      
+      fprintf(FIDd,'%12.8f\n',strainT);
+      varargout = {strainT(:,tag)-strainC(:,tag)};
    % ======================================================================
    case 'getStress'
       if abs(strainT(:,tag)) > fy/E
@@ -107,8 +117,18 @@ switch action
          stressT = strainT(:,tag)*E;
       end
       
-      fprintf(FIDf,'%f\n',stressT);
-      varargout = {stressT};
+      fprintf(FIDf,'%12.8f\n',stressT);
+      varargout = {stressT(:,tag)};
+   % ======================================================================
+   case 'getIncrStress'
+      if abs(strainT(:,tag)) > fy/E
+         stressT = sign(strainT(:,tag))*(fy+(abs(strainT(:,tag))-fy/E)*(E*b));
+      else
+         stressT = strainT(:,tag)*E;
+      end
+      
+      fprintf(FIDf,'%12.8f\n',stressT);
+      varargout = {stressT(:,tag)-stressC(:,tag)};
    % ======================================================================
    case 'getTangentK'
       if abs(strainT(:,tag)) >= fy/E

@@ -47,6 +47,11 @@ iter = 0;
 errorNorm = 1.0;
 while (errorNorm >= tol && iter <= maxIter)
 
+    % set trial forces in elements
+    for j=1:numElem
+        feval(Element{j},'setTrialStress',MatData(j),pr(j,:));
+    end
+    
     % get displacements and flexibilities from elements
     for j=1:numElem
         u(j,1) = feval(Element{j},'getStrain',MatData(j));
@@ -62,13 +67,11 @@ while (errorNorm >= tol && iter <= maxIter)
     Pr = B*pr;
     Prb = [Pr; Bx'*u];
     Sb = [B; Bx'*f];
-    normK = norm(Sb);
-    
+
     % get rhs and jacobian
     R = Mb*UdotdotTrial + Cb*UdotTrial + Prb - Pb;
     dRdQ = (c3*Mb + c2*Cb)*Bi'*f + Sb;
-    normdd = norm((c3*Mb + c2*Cb)*Bi'*f);
-    
+
     % solve for force increments
     deltaQ = dRdQ\(-R);
 
@@ -79,15 +82,9 @@ while (errorNorm >= tol && iter <= maxIter)
     else
         scaleddeltaQ = deltaQ;
     end
-
+    
     % update response quantity
     pr = pr + scaleddeltaQ;
-
-    % set trial forces in elements
-    for j=1:numElem
-        feval(Element{j},'setTrialStress',MatData(j),pr(j,:));
-    end
-
     % update the error norm and iteration number
     errorNorm = norm(deltaQ);
     %errorNorm = norm(R);
@@ -102,8 +99,6 @@ state.u = u;
 state.Pr = Pr;
 state.iter = iter;
 state.errorNorm = errorNorm;
-state.normK = normK;
-state.normdd = normdd;
 model.f = f;
 model.K = MODEL.K;
 analysis = ANALYSIS;

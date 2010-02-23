@@ -1,4 +1,4 @@
-function varargout = Elastic(action,MatData,trialValue)
+function varargout = ElasticGap(action,MatData,trialValue)
 %ELASTIC linear-elastic material
 % varargout = Elastic(action,MatData,trialValue)
 %
@@ -38,6 +38,8 @@ persistent FIDf;
 % extract material properties
 tag = MatData.tag;      % unique material tag
 E   = MatData.E;        % initial elastic modulus
+gapStrain = MatData.gap;% gap strain to initiate material
+gapStress = E*gapStrain;% gap stress to initiate material
 if isfield(MatData,'id')
    ndf = length(MatData.id);     % number of degrees of freedom
 else
@@ -88,36 +90,62 @@ switch action
       varargout = {stressT(:,tag)};
    % ======================================================================
    case 'getStrain'
-      strainT(:,tag) = 1/E*stressT(:,tag);
+      if (abs(stressT(:,tag)) >= gapStress)
+         strainT(:,tag) = sign(stressT(:,tag))*1/E*(abs(stressT(:,tag))-gapStress);
+      else
+         strainT(:,tag) = 0;
+      end
       fprintf(FIDd,'%12.8f\n',strainT(:,tag));
-      varargout = {strainT(:,tag),stressT(:,tag)};
+      varargout = {strainT(:,tag)};
    % ======================================================================
    case 'getIncrStrain'
-      strainT(:,tag) = 1/E*stressT(:,tag);
+      if (abs(stressT(:,tag)) >= gapStress)
+         strainT(:,tag) = sign(stressT(:,tag))*1/E*(abs(stressT(:,tag))-gapStress);
+      else
+         strainT(:,tag) = 0;
+      end
       fprintf(FIDd,'%12.8f\n',strainT(:,tag));
       varargout = {strainT(:,tag)-strainC(:,tag)};
    % ======================================================================
    case 'getStress'
-      stressT(:,tag) = E*strainT(:,tag);
+      if (abs(strainT(:,tag)) >= gapStrain)
+         stressT(:,tag) = sign(strainT(:,tag))*E*(abs(strainT(:,tag))-gapStrain);
+      else
+         stressT(:,tag) = 0;
+      end
       fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       varargout = {stressT(:,tag)};
    % ======================================================================
    case 'getIncrStress'
-      stressT(:,tag) = E*strainT(:,tag);
+      if (abs(strainT(:,tag)) >= gapStrain)
+         stressT(:,tag) = sign(strainT(:,tag))*E*(abs(strainT(:,tag))-gapStrain);
+      else
+         stressT(:,tag) = 0;
+      end
       fprintf(FIDf,'%12.8f\n',stressT(:,tag));
       varargout = {stressT(:,tag)-stressC(:,tag)};
    % ======================================================================
    case 'getTangentK'
-      varargout = {E};
+      if ((abs(strainT(:,tag)) >= gapStrain) || (abs(stressT(:,tag)) >= gapStress))
+         Eout = E;
+      else
+         Eout = 0;
+      end
+      varargout = {Eout};
    % ======================================================================
    case 'getInitialTangentK'
-      varargout = {E};
+      varargout = {0};
    % ======================================================================
    case 'getTangentF'
-      varargout = {1/E};
+      if ((abs(strainT(:,tag)) >= gapStrain) || (abs(stressT(:,tag)) >= gapStress))
+         Fout = 1/E;
+      else
+         Fout = 1e3;
+      end
+      varargout = {Fout};
    % ======================================================================
    case 'getInitialTangentF'
-      varargout = {1/E};
+      varargout = {1e3};
    % ======================================================================
    case 'commitState'
       stressC(:,tag) = stressT(:,tag);
