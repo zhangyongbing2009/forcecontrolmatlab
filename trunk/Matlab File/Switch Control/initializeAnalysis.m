@@ -16,15 +16,17 @@ a4 = 1.0 - 0.5/beta;
 
 % Analysis Method
 % schemeDisp = 'DM_NLDynamicNR';
-schemeDisp = 'DM_NLDynamicNRLimit';
+% schemeDisp = 'DM_NLDynamicNRLimit';
 % schemeDisp = 'DM_NLDynamicNRwFixIter';
-% schemeDisp = 'DM_NLDynamicNRLimitIncr';
+schemeDisp = 'DM_NLDynamicNRLimitIncr';
 % schemeForce = 'FM_NLDynamicNR';
-schemeForce = 'FM_NLDynamicNRLimit';
+% schemeForce = 'FM_NLDynamicNRLimit';
 % schemeForce = 'FM_NLDynamicNRwFixIter';
-% schemeForce = 'FM_NLDynamicNRLimitIncr';
+schemeForce = 'FM_NLDynamicNRLimitIncr';
 
 % Switch Method
+% schemeSwitch = 'dispCtrlOnly';
+% schemeSwitch = 'forceCtrlOnly';
 schemeSwitch = 'simpleYield';
 % schemeSwitch = 'secantUpdate';
 
@@ -35,8 +37,8 @@ Rd = 1.2;
 Rf = 1.4;
 
 
-% plotFlag = 'r-';
-plotFlag = 'b-';
+plotFlag = 'r-';
+% plotFlag = 'b-';
 
 % max iterations and tol
 maxIter = 500;

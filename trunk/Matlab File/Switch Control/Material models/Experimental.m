@@ -103,7 +103,7 @@ switch action
       sData(1) = 3;
       sData(2:ndf+1) = strainT(:,tag)';
       TCPSocket('sendData',socketID(tag),sData,dataSize);
-      fprintf(FIDd,'%f\n',trialValue);
+      fprintf(FIDd,'%f\n',strainT(:,tag));
       
       varargout = {0};
    % ======================================================================
@@ -129,7 +129,7 @@ switch action
          sData(2:ndf+1) = stressT(:,tag)';
          TCPSocket('sendData',socketID(tag),sData,dataSize);
       end
-      fprintf(FIDf,'%f\n',trialValue);
+      fprintf(FIDf,'%f\n',stressT(:,tag));
       
       varargout = {0};
    % ======================================================================
