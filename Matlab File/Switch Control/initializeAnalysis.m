@@ -25,8 +25,8 @@ schemeDisp = 'DM_NLDynamicNRLimitIncr';
 schemeForce = 'FM_NLDynamicNRLimitIncr';
 
 % Switch Method
-schemeSwitch = 'dispCtrlOnly';
-% schemeSwitch = 'forceCtrlOnly';
+% schemeSwitch = 'dispCtrlOnly';
+schemeSwitch = 'forceCtrlOnly';
 % schemeSwitch = 'simpleYield';
 % schemeSwitch = 'simpleYieldExperimental';
 % schemeSwitch = 'secantUpdate';
@@ -42,9 +42,9 @@ Rf = 0.4;
 plotFlag = 'b-';
 % plotFlag = 'g--';
 % max iterations and tol
-maxIter = 100;
-tol = 1.0E-3/45;
-incrLimit = 1E-1/45;
+maxIter = 1000;
+tol = 1.0E-3;
+incrLimit = 1E-2;
 
 % Store analysis variables
 analysis.beta  = beta;

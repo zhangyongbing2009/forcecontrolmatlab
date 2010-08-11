@@ -74,6 +74,8 @@ STATE.prPrev = zeros(MODEL.numElem,1);
 STATE.uPrev = zeros(MODEL.numElem,1);
 STATE.offsetu = zeros(MODEL.numElem,1);
 STATE.offsetpr = zeros(MODEL.numElem,1);
+K = MODEL.K;
+f = MODEL.f;
 
 % calculations for each time step, i
 for i=1:npts-1
@@ -89,6 +91,8 @@ for i=1:npts-1
    STATE.i = i;
    STATE.controlMode = controlModes(:,i);
    STATE.switchFlag = switchFlags(:,i);
+   MODEL.K = K;
+   MODEL.f = f;
    
    % get applied loads
    STATE.Ptp1 = -MODEL.M*b*ag(i+1);
@@ -98,6 +102,8 @@ for i=1:npts-1
    
    STATE.prPrev = pr(:,i);
    STATE.uPrev = u(:,i);
+   K = model.K;
+   f = model.f;
    U(:,i+1) = state.U;
    Udot(:,i+1) = state.Udot;
    Udotdot(:,i+1) = state.Udotdot;

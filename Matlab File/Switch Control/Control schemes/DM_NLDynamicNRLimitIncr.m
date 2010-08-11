@@ -29,20 +29,42 @@ incrLimit = ANALYSIS.incrLimit;
 
 % State Variables
 U = STATE.U;
+u = STATE.u;
 offsetu = STATE.offsetu;
 Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
 Udot = a1*STATE.Udot + a2*STATE.Udotdot;
 Udotdot = a3*STATE.Udot + a4*STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
+Pr = STATE.Pr;
+pr = STATE.pr;
 i = STATE.i;
 
 % Newton-Raphson algorithm
+% Initialize algorithm
 iter = 0;
-errorNorm = 1.0;
 scaleddeltaU = zeros(ndf,1);
+
+% get rhs and jacobian
+R  = M*Udotdot + C*Udot + Pr - Ptp1;
+dRdU = c3*M + c2*C + c1*K;
+
+% solve for displacement increments
+deltaU = dRdU\(-R);
+
+if max(abs(deltaU)) > incrLimit
+    scale = incrLimit/max(abs(deltaU));
+    scaleddeltaU = scale*deltaU;
+else
+    scaleddeltaU = deltaU;
+end
+
+% update the error norm and iteration number
+errorNorm = norm(deltaU);
+%errorNorm = norm(R);
+% errorNorm = 1.0;
 while ((errorNorm >= tol) && (iter <= maxIter))
-   %update response quantities
+    %update response quantities
     U = U + c1*scaleddeltaU;
     Udot = Udot +c2*scaleddeltaU;
     Udotdot = Udotdot + c3*scaleddeltaU;
@@ -57,7 +79,6 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     for j=1:numElem
         feval(Element{j},'setIncrTrialStrain',MatData(j),uCtrl(j,:));
     end
-   
     % get resisting forces and stiffness from elements
     for j=1:numElem
         pr(j,1) = feval(Element{j},'getStress',MatData(j));

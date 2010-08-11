@@ -10,6 +10,7 @@ Bi = MODEL.Bi;
 Bx = MODEL.Bx;
 C = MODEL.C;
 K = MODEL.K;
+f = MODEL.f;
 M = MODEL.M;
 Element = MODEL.Element;
 MatData = MODEL.MatData;
@@ -31,6 +32,7 @@ incrLimit = ANALYSIS.incrLimit;
 
 % State Variables
 U = STATE.U;
+u = STATE.u;
 Udot = STATE.Udot;
 Udotdot = STATE.Udotdot;
 Ptp1 = STATE.Ptp1;
@@ -44,9 +46,37 @@ Cb = [C; zeros(nos,ndf)];
 Pb = [Ptp1; zeros(nos,1)];
    
 % Newton-Raphson algorithm
+% Initialize algorithm
 iter = 0;
-errorNorm = 1.0;
 scaleddeltaQ = zeros(numElem,1);
+% update response quantities
+UTrial = Bi'*u;
+UdotTrial = c2*(UTrial-U) + a1*Udot + a2*Udotdot;
+UdotdotTrial = c3*(UTrial-U) + a3*Udot + a4*Udotdot;
+
+% transform forces from element to global DOF
+Pr = B*pr;
+Prb = [Pr; Bx'*u];
+Sb = [B; Bx'*f];
+
+% get rhs and jacobian
+R = Mb*UdotdotTrial + Cb*UdotTrial + Prb - Pb;
+dRdQ = (c3*Mb + c2*Cb)*Bi'*f + Sb;
+
+% solve for force increments
+deltaQ = dRdQ\(-R);
+
+% Scale increment
+if max(abs(deltaQ)) > incrLimit
+    scale = incrLimit/max(abs(deltaQ));
+    scaleddeltaQ = scale*deltaQ;
+else
+    scaleddeltaQ = deltaQ;
+end
+
+% update the error norm and iteration number
+errorNorm = norm(deltaQ);
+
 while (errorNorm >= tol && iter <= maxIter)
     % update response quantity
     pr = pr + scaleddeltaQ;
