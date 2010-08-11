@@ -16,17 +16,17 @@ a4 = 1.0 - 0.5/beta;
 
 % Analysis Method
 % schemeDisp = 'DM_NLDynamicNR';
-schemeDisp = 'DM_NLDynamicNRLimit';
+% schemeDisp = 'DM_NLDynamicNRLimit';
 % schemeDisp = 'DM_NLDynamicNRwFixIter';
-% schemeDisp = 'DM_NLDynamicNRLimitIncr';
+schemeDisp = 'DM_NLDynamicNRLimitIncr';
 % schemeForce = 'FM_NLDynamicNR';
-schemeForce = 'FM_NLDynamicNRLimit';
+% schemeForce = 'FM_NLDynamicNRLimit';
 % schemeForce = 'FM_NLDynamicNRwFixIter';
-% schemeForce = 'FM_NLDynamicNRLimitIncr';
+schemeForce = 'FM_NLDynamicNRLimitIncr';
 
 % Switch Method
-% schemeSwitch = 'dispCtrlOnly';
-schemeSwitch = 'forceCtrlOnly';
+schemeSwitch = 'dispCtrlOnly';
+% schemeSwitch = 'forceCtrlOnly';
 % schemeSwitch = 'simpleYield';
 % schemeSwitch = 'simpleYieldExperimental';
 % schemeSwitch = 'secantUpdate';
@@ -40,11 +40,11 @@ Rf = 0.4;
 
 % plotFlag = 'r-';
 plotFlag = 'b-';
-% plotFlag = 'k-';
+% plotFlag = 'g--';
 % max iterations and tol
-maxIter = 10000;
-tol = 1.0E-3;
-incrLimit = 1E-1;
+maxIter = 100;
+tol = 1.0E-3/45;
+incrLimit = 1E-1/45;
 
 % Store analysis variables
 analysis.beta  = beta;
