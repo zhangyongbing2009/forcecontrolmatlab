@@ -8,34 +8,36 @@
 clear all;  close all;  clc;
 
 % add the subroutine path to the folder
-addpath([pwd '\Material models']);
-addpath([pwd '\Switch schemes']);
-addpath([pwd '\Control schemes']);
-% addpath([pwd '/Material models']);
-% addpath([pwd '/Switch schemes']);
-% addpath([pwd '/Control schemes']);
+% addpath([pwd '\Material models']);
+% addpath([pwd '\Switch schemes']);
+% addpath([pwd '\Control schemes']);
+addpath([pwd '/Material models']);
+addpath([pwd '/Switch schemes']);
+addpath([pwd '/Control schemes']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3 Element Model
-% MODEL = createModel();
-% 4 Element Model
-MODEL = createModel4();
+MODEL = createModel();
+% % 4 Element Model
+% MODEL = createModel4();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load GroundMotion Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % load the ground motion
-GMDir = 'D:\Switch Control\Ground motions\';
+% GMDir = 'D:\Switch Control\Ground motions\';
+GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
-SF = 1.0;
+SF = 0.10;
 g = 386.1;
 ag0 = load(fullfile(GMDir,'elcentro.txt'));
 t0 = 0:length(ag0)-1;
 t0 = dt*t0;
 tEnd = t0(end);
 ag0 = SF*g*ag0;
+% f_RspSpc(ag0,g,dt,0.0,0.01,0.005,3);
 
 % change to analysis deltaT
 deltaT = 0.02;
@@ -183,9 +185,9 @@ for j=1:MODEL.ndf
     ylabel(['Udot' num2str(j)]);
     grid
     subplot(3,MODEL.ndf,j+2*MODEL.ndf);
-    plot(t,Udot(j,:),ANALYSIS.plotFlag);
+    plot(t,Udotdot(j,:),ANALYSIS.plotFlag);
     xlabel('Time [sec]')
-    ylabel(['Udot' num2str(j)]);
+    ylabel(['Udotdot' num2str(j)]);
     grid
 end
 
@@ -290,10 +292,10 @@ xlabel('Time [sec]')
 grid
 
 % remove the subroutine path to the folder
-% rmpath([pwd '/Control schemes']);
-% rmpath([pwd '/Switch schemes']);
-% rmpath([pwd '/Material models']);
+rmpath([pwd '/Control schemes']);
+rmpath([pwd '/Switch schemes']);
+rmpath([pwd '/Material models']);
 
-rmpath([pwd '\Control schemes']);
-rmpath([pwd '\Switch schemes']);
-rmpath([pwd '\Material models']);
+% rmpath([pwd '\Control schemes']);
+% rmpath([pwd '\Switch schemes']);
+% rmpath([pwd '\Material models']);
