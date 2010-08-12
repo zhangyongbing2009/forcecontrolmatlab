@@ -1,12 +1,8 @@
-function model = createModel()
+function model = createModelT()
 
 %%%%%%%%%%%%%%%%%%%%
 % Model Generation
 %%%%%%%%%%%%%%%%%%%%
-% global mass matrix
-% M = [0.18 0; 0 0.09];
-M = [0.10 0; 0 0.05];
-
 % equilibrium matrices
 B = [1 -1 0; 0 1 -1];
 Bi = [1 1; 0 1; 0 0];
@@ -20,8 +16,6 @@ Bx = [1; 1; 1];
 % Bi = [1 1; 0 1; 0 0; 0 0];
 % Bx = [1 -1; 1 0; 1 0; 0 1];
 
-% number of global DOF in the model
-ndf = size(M,1);
 % degree of static indeterminancy
 nos = size(Bx,2);
 
@@ -74,10 +68,15 @@ for j=1:numElem
 end
 K = A'*k*A;
 
-% calculate natural frequencies and periods
-lambda = eig(K,M);
-omega  = sort(sqrt(lambda));
-T = 2.0*pi./omega;
+% set the periods
+T = [0.5; 0.25];
+omega = (T./(2*pi)).^(-1);
+
+% Calculate mass matrix give K and T
+M = findMassMat(K,T);
+
+% number of global DOF in the model
+ndf = size(M,1);
 
 % mass-proportional damping matrix% ElementFrc{1} = 'BiLinearHystereticForce';
 zeta = 0.05;

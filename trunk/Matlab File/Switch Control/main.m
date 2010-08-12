@@ -19,7 +19,8 @@ addpath([pwd '/Control schemes']);
 % Create Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3 Element Model
-MODEL = createModel();
+% MODEL = createModel();
+MODEL = createModelT();
 % % 4 Element Model
 % MODEL = createModel4();
 
