@@ -75,8 +75,8 @@ else
 end
 
 % update the error norm and iteration number
-errorNorm = norm(deltaQ);
-
+% errorNorm = norm(deltaQ);
+errorNorm = norm(B*R);
 while (errorNorm >= tol && iter <= maxIter)
     % update response quantity
     pr = pr + scaleddeltaQ;
@@ -118,8 +118,8 @@ while (errorNorm >= tol && iter <= maxIter)
     end
 
     % update the error norm and iteration number
-    errorNorm = norm(deltaQ);
-    %errorNorm = norm(R);
+    %errorNorm = norm(deltaQ);
+    errorNorm = norm(B*R);
     iter = iter+1;
 end
 

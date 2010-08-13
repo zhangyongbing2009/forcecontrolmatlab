@@ -24,7 +24,7 @@ schemeDisp = 'DM_NLDynamicNRLimitIncr';
 % schemeForce = 'FM_NLDynamicNRwFixIter';
 schemeForce = 'FM_NLDynamicNRLimitIncr';
 
-% Switch Method
+% % Switch Method
 % schemeSwitch = 'dispCtrlOnly';
 schemeSwitch = 'forceCtrlOnly';
 % schemeSwitch = 'simpleYield';
@@ -44,7 +44,7 @@ plotFlag = 'b-';
 % max iterations and tol
 maxIter = 1000;
 tol = 1.0E-3;
-incrLimit = 1E-2;
+incrLimit = 1E-1;
 
 % Store analysis variables
 analysis.beta  = beta;
