@@ -29,7 +29,7 @@ Element{1} = 'BiLinearElastic';
 % Element{1} = 'NLElastic';
 % Element{1} = 'Experimental';
 MatData(1).tag    = 1;
-MatData(1).E      = 40;
+MatData(1).E      = 45;
 MatData(1).fy     = 300;      % yield stress
 MatData(1).b      = 100.0;     % hardening ratio
 MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
@@ -42,18 +42,18 @@ MatData(1).ipPort = 8090;
 Element{2} = 'Elastic';
 MatData(2).tag = 1;
 % MatData(2).E   = 200; %15
-MatData(2).E   = 1;
+MatData(2).E   = 10;
 
 % element 3 properties
 Element{3} = 'Elastic';
 MatData(3).tag = 3;
 % MatData(3).E   = 1500;  %40
-MatData(3).E   = 3.6;
+MatData(3).E   = 20;
 
 % element 4 properties
 Element{4} = 'Elastic';
 MatData(4).tag = 4;
-MatData(4).E   = 10;
+MatData(4).E   = 60;
 
 % number of elements
 numElem = size(B,2);

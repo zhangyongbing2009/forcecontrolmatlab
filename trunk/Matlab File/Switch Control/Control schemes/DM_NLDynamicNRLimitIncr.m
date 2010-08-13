@@ -10,6 +10,7 @@ B = MODEL.B;
 C = MODEL.C;
 K = MODEL.K;
 M = MODEL.M;
+f = MODEL.f;
 Element = MODEL.Element;
 MatData = MODEL.MatData;
 numElem = MODEL.numElem;
@@ -60,8 +61,8 @@ else
 end
 
 % update the error norm and iteration number
-errorNorm = norm(deltaU);
-%errorNorm = norm(R);
+%errorNorm = norm(deltaU);
+errorNorm = norm(R);
 % errorNorm = 1.0;
 while ((errorNorm >= tol) && (iter <= maxIter))
     %update response quantities
@@ -104,8 +105,8 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     end
 
     % update the error norm and iteration number
-    errorNorm = norm(deltaU);
-    %errorNorm = norm(R);
+    %errorNorm = norm(deltaU);
+    errorNorm = norm(R);
     iter = iter + 1;
 end
 
@@ -118,6 +119,7 @@ state.Pr = Pr;
 state.iter = iter;
 state.errorNorm = errorNorm;
 model.K = K;
+model.f = f;
 analysis = ANALYSIS;
 
 if (iter < maxIter)
