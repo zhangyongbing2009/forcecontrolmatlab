@@ -19,8 +19,8 @@ addpath([pwd '/Control schemes']);
 % Create Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3 Element Model
-% MODEL = createModel();
-MODEL = createModelT();
+MODEL = createModel();
+% MODEL = createModelT();
 % % 4 Element Model
 % MODEL = createModel4();
 
@@ -31,7 +31,7 @@ MODEL = createModelT();
 % GMDir = 'D:\Switch Control\Ground motions\';
 GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
-SF = 0.10;
+SF = 0.15;
 g = 386.1;
 ag0 = load(fullfile(GMDir,'elcentro.txt'));
 t0 = 0:length(ag0)-1;

@@ -3,7 +3,7 @@
 % stiffneess matrix on the number of iterations to solve an equation
 clear all; clc; close all;
 
-M = diag([0.18 .09]);
+M = diag([1 0.5]);
 % equilibrium matrices
 B = [1 -1 0; 0 1 -1];
 Bi = [1 1; 0 1; 0 0];
@@ -13,7 +13,7 @@ Bx = [1; 1; 1];
 A = B';
 
 % Stiffness matrix
-k=diag([1000 15 50]);
+k=diag([40 15 1000]);
 f=inv(k);
 K=A'*k*A;
 

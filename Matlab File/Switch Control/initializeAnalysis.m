@@ -43,7 +43,7 @@ plotFlag = 'b-';
 % plotFlag = 'g--';
 % max iterations and tol
 maxIter = 1000;
-tol = 1.0E-3;
+tol = 5.0E-2;
 incrLimit = 1E-1;
 
 % Store analysis variables
