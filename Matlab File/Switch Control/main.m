@@ -5,7 +5,7 @@
 % Last Update: 10/19/09
 
 % clean start
-clear all;  close all;  clc;
+clear all; close all;  clc;
 
 % add the subroutine path to the folder
 % addpath([pwd '\Material models']);
@@ -31,7 +31,7 @@ MODEL = createModel();
 % GMDir = 'D:\Switch Control\Ground motions\';
 GMDir = '/Users/hongkim/Research/Force Control/forcecontrolmatlab/Ground motions/';
 dt = 0.02;
-SF = 0.15;
+SF = 1.00;
 g = 386.1;
 ag0 = load(fullfile(GMDir,'elcentro.txt'));
 t0 = 0:length(ag0)-1;
@@ -41,11 +41,11 @@ ag0 = SF*g*ag0;
 % f_RspSpc(ag0,g,dt,0.0,0.01,0.005,3);
 
 % change to analysis deltaT
-deltaT = 0.02;
+deltaT = 0.001;
 t = deltaT*(0:floor(tEnd/deltaT))';
 ag = interp1(t0,ag0,t);
 b = [1; 1];
-npts = 350;% length(ag);
+npts = 3500*2;% length(ag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize Analysis
