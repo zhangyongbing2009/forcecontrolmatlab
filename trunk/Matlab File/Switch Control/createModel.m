@@ -30,14 +30,15 @@ A = B';
 % element 1 properties
 % Element{1} = 'Elastic';
 Element{1} = 'BiLinearElastic';
+% Element{1} = 'BiLinearElasticRDM';
 % Element{1} = 'BiLinearHysteretic';
 % Element{1} = 'Hardening';
 % Element{1} = 'NLElastic';
 % Element{1} = 'Experimental';
 MatData(1).tag    = 1;
-MatData(1).E      = 45;
-MatData(1).fy     = 300;      % yield stress
-MatData(1).b      = 100.0;     % hardening ratio
+MatData(1).E      = 5;
+MatData(1).fy     = 4;      % yield stress
+MatData(1).b      = 0.1;     % hardening ratio
 MatData(1).Hkin   = MatData(1).b/(1-MatData(1).b)*MatData(1).E;
 MatData(1).Kiso   = 0.0;
 MatData(1).amp   = 2;
@@ -48,13 +49,13 @@ MatData(1).ipPort = 8090;
 Element{2} = 'Elastic';
 MatData(2).tag = 1;
 % MatData(2).E   = 200; %15
-MatData(2).E   = 20;
+MatData(2).E   = 2;
 
 % element 3 properties
 Element{3} = 'Elastic';
 MatData(3).tag = 3;
 % MatData(3).E   = 1500;  %40
-MatData(3).E   = 80;
+MatData(3).E   = 4;
 
 % element 4 properties
 Element{4} = 'Elastic';
