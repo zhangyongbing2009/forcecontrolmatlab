@@ -63,6 +63,7 @@ end
 % update the error norm and iteration number
 %errorNorm = norm(deltaU);
 errorNorm = norm(R);
+% errorNorm = abs(deltaU'*R);
 % errorNorm = 1.0;
 while ((errorNorm >= tol) && (iter <= maxIter))
     %update response quantities
@@ -107,6 +108,7 @@ while ((errorNorm >= tol) && (iter <= maxIter))
     % update the error norm and iteration number
     %errorNorm = norm(deltaU);
     errorNorm = norm(R);
+% errorNorm = abs(deltaU'*R);
     iter = iter + 1;
 end
 
